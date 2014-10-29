@@ -3,5 +3,10 @@ package main
 import "fmt"
 
 func main() {
-  fmt.Printf("Hello, world.\n")
+	PrintResults("Hello, world.\n")
+}
+
+func PrintResults(results string) {
+	fmt.Printf("asdf" + results)
+	// results
 }
