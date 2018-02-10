@@ -11,6 +11,8 @@ import (
 	"github.com/cloudfoundry/gosigar"
 	"io/ioutil"
 	"path"
+	"io"
+	"bytes"
 )
 
 const Blocksize = 0x1 << 16 // 65,536, 2^16
@@ -45,7 +47,7 @@ func main() {
 	bytesWritten := 0
 	start := time.Now()
 
-	for i := 0; i < int(mem.Total>>4); i += len(randomBlock) { // fixme remove ">> 4"
+	for i := 0; i < int(mem.Total); i += len(randomBlock) { // fixme remove ">> 4"
 		n, err := w.Write(randomBlock)
 		bytesWritten += n
 		check(err)
@@ -63,28 +65,33 @@ func main() {
 	check(err)
 	defer f.Close()
 
-	r := bufio.NewReader(f)
 	bytesRead := 0
-	readBuf := []byte{}
+	data := make([]byte, Blocksize)
 
-	rando := rand.New(rand.NewSource(time.Now().UnixNano()))
-	var offset int
 	start = time.Now()
-	for n, err := r.Read(readBuf); n > 0; bytesRead += n {
-		check(err)
-		// let's do the comparison
-		offset = rando.Int() % Blocksize
-		if readBuf[offset] != randomBlock[offset] {
-			panic("they didn't match")
+
+	for {
+		n, err := f.Read(data)
+		bytesRead += n
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			fmt.Println(err)
+			return
 		}
 	}
-	f.Close()
-	finish = time.Now()
 
+	finish = time.Now()
 	duration = finish.Sub(start)
-	fmt.Printf("read %d MiB\n", bytesRead>>20)
+
+	fmt.Printf("read %d MiB\n", bytesRead >> 20)
 	fmt.Printf("took %f seconds\n", duration.Seconds())
 	fmt.Printf("throughput %0.2f MiB/s\n", float64(bytesWritten)/float64(duration.Seconds())/math.Exp2(20))
+
+	if ! bytes.Equal(randomBlock, data) {
+		panic("last block didn't match")
+	}
 }
 
 func check(e error) {
