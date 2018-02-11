@@ -16,7 +16,7 @@ import (
 	"flag"
 )
 
-const Blocksize = 0x1 << 16 // 65,536, 2^16
+const Blocksize = 0x1 << 16 // 65,536 bytes, 2^16 bytes
 
 func main() {
 	var bonnieTempDir, bonnieParentDir, bonnieDir string
@@ -53,11 +53,16 @@ func main() {
 	fmt.Printf("memory: %d MiB\n", mem.Total>>20)
 
 	fileSize := int(mem.Total) * 2 / numProcs
-	//fileSize = fileSize >> 4 // uncomment during testing; speeds up tests sixteen-fold
+	//fileSize = fileSize >> 4 // fixme: comment-out before committing. during testing; speeds up tests sixteen-fold
 
+	// randomBlock has random data to prevent filesystems which use compression (e.g. ZFS) from having an unfair advantage
+	// we're testing hardware throughput, not filesystem throughput
 	randomBlock := make([]byte, Blocksize)
-	_, err = rand.Read(randomBlock)
+	lenRandom, err := rand.Read(randomBlock)
 	check(err)
+	if len(randomBlock) != lenRandom {
+		panic("RandomBlock didn't get the correct number of bytes")
+	}
 
 	start := time.Now()
 
@@ -93,6 +98,24 @@ func main() {
 	fmt.Printf("read %d MiB\n", bytesRead>>20)
 	fmt.Printf("took %f seconds\n", duration.Seconds())
 	fmt.Printf("throughput %0.2f MiB/s\n", float64(bytesWritten)/float64(duration.Seconds())/math.Exp2(20))
+
+	numOperationsChan := make(chan int)
+	start = time.Now()
+
+	for i := 0; i < numProcs; i++ {
+		go testIOPerformance(path.Join(bonnieDir, fmt.Sprintf("bonnie.%d", i)), numOperationsChan)
+	}
+	numOperations := 0
+	for i := 0; i < numProcs; i++ {
+		numOperations += <-numOperationsChan
+	}
+
+	finish = time.Now()
+	duration = finish.Sub(start)
+
+	fmt.Printf("operations %d\n", numOperations)
+	fmt.Printf("took %f seconds\n", duration.Seconds())
+	fmt.Printf("IOPS %0.2f\n", float64(numOperations)/float64(duration.Seconds()))
 }
 
 func testWritePerformance(filename string, fileSize int, randomBlock []byte, bytesWrittenChannel chan<- int) {
@@ -131,7 +154,9 @@ func testReadPerformance(filename string, randomBlock []byte, bytesReadChannel c
 			}
 			panic(err)
 		}
-		if bytesRead%127 == 0 { // every hundredth or so block, do a sanity check. 127 is prime to avoid collisions
+		// once every 127 blocks, do a sanity check. 127 is prime to avoid collisions
+		// e.g. 128 would check every block, not every 128th block
+		if bytesRead%127 == 0 {
 			if ! bytes.Equal(randomBlock, data) {
 				panic("last block didn't match")
 			}
@@ -139,6 +164,42 @@ func testReadPerformance(filename string, randomBlock []byte, bytesReadChannel c
 	}
 
 	bytesReadChannel <- bytesRead
+	f.Close()
+}
+
+func testIOPerformance(filename string, numOpsChannel chan<- int) {
+	fileInfo, err := os.Stat(filename)
+	check(err)
+	fileSize := fileInfo.Size()
+	numOperations := 0x1 << 16 // a fancy way of saying 65,536
+
+	f, err := os.OpenFile(filename, os.O_RDWR, 0644)
+	check(err)
+	defer f.Close()
+
+	data := make([]byte, 1)
+	checksum := make([]byte, 1)
+
+	for i := 0; i < numOperations; i++ {
+		f.Seek(rand.Int63n(fileSize), 0)
+		// TPC-E has a ratio of 9.7:1 reads:writes http://www.cs.cmu.edu/~chensm/papers/TPCE-sigmod-record10.pdf
+		// we round to 10:1
+		if i%10 != 0 {
+			length, err := f.Read(data)
+			check(err)
+			if length != 1 {
+				panic(fmt.Sprintf("I expected to read 1 byte, instead I read %d bytes!", length))
+			}
+			checksum[0] ^= data[0]
+		} else {
+			length, err := f.Write(checksum)
+			check(err)
+			if length != 1 {
+				panic(fmt.Sprintf("I expected to write 1 byte, instead I wrote %d bytes!", length))
+			}
+		}
+	}
+	numOpsChannel <- int(numOperations)
 	f.Close()
 }
 
