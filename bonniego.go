@@ -20,10 +20,12 @@ const Blocksize = 0x1 << 16 // 65,536, 2^16
 
 func main() {
 	var bonnieTempDir, bonnieParentDir, bonnieDir string
+	var numProcs int
 	bonnieTempDir, err := ioutil.TempDir("", "bonniegoParent")
 	check(err)
 	defer os.RemoveAll(bonnieTempDir)
 
+	flag.IntVar(&numProcs, "procs", runtime.NumCPU(), "The number of concurrent readers/writers, defaults to the number of CPU cores")
 	flag.StringVar(&bonnieParentDir, "dir", bonnieTempDir, "The directory in which bonniego places its temp files, should have at least twice system RAM available")
 	flag.Parse()
 
@@ -44,15 +46,14 @@ func main() {
 	defer os.RemoveAll(bonnieDir)
 	fmt.Printf("directory: %s\n", bonnieDir)
 
-	cores := runtime.NumCPU()
-	fmt.Printf("cores: %d\n", cores)
+	fmt.Printf("cores: %d\n", numProcs)
 
 	mem := sigar.Mem{}
 	mem.Get()
 	fmt.Printf("memory: %d MiB\n", mem.Total>>20)
 
-	fileSize := int(mem.Total) * 2 / cores
-	// fileSize = fileSize >> 4 // uncomment during testing; speeds up tests sixteen-fold
+	fileSize := int(mem.Total) * 2 / numProcs
+	//fileSize = fileSize >> 4 // uncomment during testing; speeds up tests sixteen-fold
 
 	randomBlock := make([]byte, Blocksize)
 	_, err = rand.Read(randomBlock)
@@ -62,11 +63,11 @@ func main() {
 
 	bytesReadorWritten := make(chan int)
 
-	for i := 0; i < cores; i++ {
+	for i := 0; i < numProcs; i++ {
 		go testWritePerformance(path.Join(bonnieDir, fmt.Sprintf("bonnie.%d", i)), fileSize, randomBlock, bytesReadorWritten)
 	}
 	bytesWritten := 0
-	for i := 0; i < cores; i++ {
+	for i := 0; i < numProcs; i++ {
 		bytesWritten += <-bytesReadorWritten
 	}
 
@@ -78,11 +79,11 @@ func main() {
 
 	start = time.Now()
 
-	for i := 0; i < cores; i++ {
+	for i := 0; i < numProcs; i++ {
 		go testReadPerformance(path.Join(bonnieDir, fmt.Sprintf("bonnie.%d", i)), randomBlock, bytesReadorWritten)
 	}
 	bytesRead := 0
-	for i := 0; i < cores; i++ {
+	for i := 0; i < numProcs; i++ {
 		bytesRead += <-bytesReadorWritten
 	}
 
