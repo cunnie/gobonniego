@@ -17,6 +17,25 @@ import (
 
 const Blocksize = 0x1 << 16 // 65,536, 2^16
 
+func testWritePerformance(filename string, fileSize int, randomBlock []byte, bytesWrittenChannel chan<- int) {
+	f, err := os.Create(filename)
+	check(err)
+	defer f.Close()
+
+	w := bufio.NewWriter(f)
+
+	bytesWritten := 0
+	for i := 0; i < fileSize; i += len(randomBlock) {
+		n, err := w.Write(randomBlock)
+		check(err)
+		bytesWritten += n
+	}
+
+	w.Flush()
+	f.Close()
+	bytesWrittenChannel <- bytesWritten
+}
+
 func main() {
 
 	//var ip = flag.Int("flagname", 1234, "help message for flagname")
@@ -30,38 +49,31 @@ func main() {
 	mem.Get()
 	fmt.Printf("memory: %d MiB\n", mem.Total>>20)
 
+	fileSize := int(mem.Total) * 2 / cores
+
 	dir, err := ioutil.TempDir("", "bonniego")
+	fmt.Printf("directory: %s\n", dir)
 	check(err)
 	defer os.RemoveAll(dir)
-
-	f, err := os.Create(path.Join(dir, "bonniego"))
-	check(err)
-	defer f.Close()
-	fmt.Printf("directory: %s\n", dir)
 
 	randomBlock := make([]byte, Blocksize)
 	_, err = rand.Read(randomBlock)
 	check(err)
 
-	w := bufio.NewWriter(f)
-	bytesWritten := 0
 	start := time.Now()
 
-	for i := 0; i < int(mem.Total); i += len(randomBlock) { // fixme remove ">> 4"
-		n, err := w.Write(randomBlock)
-		bytesWritten += n
-		check(err)
-	}
+	bytesWrittenChannel := make(chan int)
+	go testWritePerformance(path.Join(dir,"bonniego"), fileSize, randomBlock, bytesWrittenChannel)
+	bytesWritten :=  <-bytesWrittenChannel
 
-	w.Flush()
-	f.Close()
+
 	finish := time.Now()
 	duration := finish.Sub(start)
-	fmt.Printf("wrote %d MiB\n", bytesWritten>>20)
+	fmt.Printf("wrote %d MiB\n", bytesWritten)
 	fmt.Printf("took %f seconds\n", duration.Seconds())
 	fmt.Printf("throughput %0.2f MiB/s\n", float64(bytesWritten)/float64(duration.Seconds())/math.Exp2(20))
 
-	f, err = os.Open(path.Join(dir, "bonniego"))
+	f, err := os.Open(path.Join(dir, "bonniego"))
 	check(err)
 	defer f.Close()
 
