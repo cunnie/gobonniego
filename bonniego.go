@@ -17,24 +17,6 @@ import (
 
 const Blocksize = 0x1 << 16 // 65,536, 2^16
 
-func testWritePerformance(filename string, fileSize int, randomBlock []byte, bytesWrittenChannel chan<- int) {
-	f, err := os.Create(filename)
-	check(err)
-	defer f.Close()
-
-	w := bufio.NewWriter(f)
-
-	bytesWritten := 0
-	for i := 0; i < fileSize; i += len(randomBlock) {
-		n, err := w.Write(randomBlock)
-		check(err)
-		bytesWritten += n
-	}
-
-	w.Flush()
-	f.Close()
-	bytesWrittenChannel <- bytesWritten
-}
 
 func main() {
 
@@ -62,25 +44,66 @@ func main() {
 
 	start := time.Now()
 
-	bytesWrittenChannel := make(chan int)
-	go testWritePerformance(path.Join(dir,"bonniego"), fileSize, randomBlock, bytesWrittenChannel)
-	bytesWritten :=  <-bytesWrittenChannel
+	bytesReadorWritten := make(chan int)
 
+	for i := 0; i < cores; i++ {
+		go testWritePerformance(path.Join(dir, fmt.Sprintf("bonnie.%d", i)), fileSize, randomBlock, bytesReadorWritten)
+	}
+	bytesWritten := 0
+	for i := 0; i < cores; i++ {
+		bytesWritten += <-bytesReadorWritten
+	}
 
 	finish := time.Now()
 	duration := finish.Sub(start)
-	fmt.Printf("wrote %d MiB\n", bytesWritten)
+	fmt.Printf("wrote %d MiB\n", bytesWritten>>20)
 	fmt.Printf("took %f seconds\n", duration.Seconds())
 	fmt.Printf("throughput %0.2f MiB/s\n", float64(bytesWritten)/float64(duration.Seconds())/math.Exp2(20))
 
-	f, err := os.Open(path.Join(dir, "bonniego"))
+	start = time.Now()
+
+	for i := 0; i < cores; i++ {
+		go testReadPerformance(path.Join(dir, fmt.Sprintf("bonnie.%d", i)), randomBlock, bytesReadorWritten)
+	}
+	bytesRead := 0
+	for i := 0; i < cores; i++ {
+		bytesRead += <-bytesReadorWritten
+	}
+
+	finish = time.Now()
+	duration = finish.Sub(start)
+
+	fmt.Printf("read %d MiB\n", bytesRead>>20)
+	fmt.Printf("took %f seconds\n", duration.Seconds())
+	fmt.Printf("throughput %0.2f MiB/s\n", float64(bytesWritten)/float64(duration.Seconds())/math.Exp2(20))
+}
+
+func testWritePerformance(filename string, fileSize int, randomBlock []byte, bytesWrittenChannel chan<- int) {
+	f, err := os.Create(filename)
+	check(err)
+	defer f.Close()
+
+	w := bufio.NewWriter(f)
+
+	bytesWritten := 0
+	for i := 0; i < fileSize; i += len(randomBlock) {
+		n, err := w.Write(randomBlock)
+		check(err)
+		bytesWritten += n
+	}
+
+	w.Flush()
+	f.Close()
+	bytesWrittenChannel <- bytesWritten
+}
+
+func testReadPerformance(filename string, randomBlock []byte, bytesReadChannel chan<- int) {
+	f, err := os.Open(filename)
 	check(err)
 	defer f.Close()
 
 	bytesRead := 0
 	data := make([]byte, Blocksize)
-
-	start = time.Now()
 
 	for {
 		n, err := f.Read(data)
@@ -89,21 +112,17 @@ func main() {
 			if err == io.EOF {
 				break
 			}
-			fmt.Println(err)
-			return
+			panic(err)
+		}
+		if bytesRead%127 == 0 { // every hundredth or so block, do a sanity check. 127 is prime to avoid collisions
+			if ! bytes.Equal(randomBlock, data) {
+				panic("last block didn't match")
+			}
 		}
 	}
 
-	finish = time.Now()
-	duration = finish.Sub(start)
-
-	fmt.Printf("read %d MiB\n", bytesRead >> 20)
-	fmt.Printf("took %f seconds\n", duration.Seconds())
-	fmt.Printf("throughput %0.2f MiB/s\n", float64(bytesWritten)/float64(duration.Seconds())/math.Exp2(20))
-
-	if ! bytes.Equal(randomBlock, data) {
-		panic("last block didn't match")
-	}
+	bytesReadChannel <- bytesRead
+	f.Close()
 }
 
 func check(e error) {
