@@ -13,16 +13,36 @@ import (
 	"path"
 	"io"
 	"bytes"
+	"flag"
 )
 
 const Blocksize = 0x1 << 16 // 65,536, 2^16
 
-
 func main() {
+	var bonnieTempDir, bonnieParentDir, bonnieDir string
+	bonnieTempDir, err := ioutil.TempDir("", "bonniegoParent")
+	check(err)
+	defer os.RemoveAll(bonnieTempDir)
 
-	//var ip = flag.Int("flagname", 1234, "help message for flagname")
-	//flag.Parse()
-	//fmt.Printf("ip: %d\n", *ip)
+	flag.StringVar(&bonnieParentDir, "dir", bonnieTempDir, "The directory in which bonniego places its temp files, should have at least twice system RAM available")
+	flag.Parse()
+
+	// if bonnieParentDir exists, e.g. "/tmp", all is good, but if it doesn't, e.g. "/tmp/bonniego_run_five", then create it
+	fileInfo, err := os.Stat(bonnieParentDir)
+	if err != nil {
+		err = os.Mkdir(bonnieParentDir, 0755)
+		check(err)
+		defer os.RemoveAll(bonnieParentDir)
+	}
+	if ! fileInfo.IsDir() {
+		panic(fmt.Sprintf("'%s' is not a directory!", bonnieParentDir))
+	}
+
+	bonnieDir = path.Join(bonnieParentDir, "bonniego")
+	err = os.Mkdir(bonnieDir, 0755)
+	check(err)
+	defer os.RemoveAll(bonnieDir)
+	fmt.Printf("directory: %s\n", bonnieDir)
 
 	cores := runtime.NumCPU()
 	fmt.Printf("cores: %d\n", cores)
@@ -32,11 +52,7 @@ func main() {
 	fmt.Printf("memory: %d MiB\n", mem.Total>>20)
 
 	fileSize := int(mem.Total) * 2 / cores
-
-	dir, err := ioutil.TempDir("", "bonniego")
-	fmt.Printf("directory: %s\n", dir)
-	check(err)
-	defer os.RemoveAll(dir)
+	// fileSize = fileSize >> 4 // uncomment during testing; speeds up tests sixteen-fold
 
 	randomBlock := make([]byte, Blocksize)
 	_, err = rand.Read(randomBlock)
@@ -47,7 +63,7 @@ func main() {
 	bytesReadorWritten := make(chan int)
 
 	for i := 0; i < cores; i++ {
-		go testWritePerformance(path.Join(dir, fmt.Sprintf("bonnie.%d", i)), fileSize, randomBlock, bytesReadorWritten)
+		go testWritePerformance(path.Join(bonnieDir, fmt.Sprintf("bonnie.%d", i)), fileSize, randomBlock, bytesReadorWritten)
 	}
 	bytesWritten := 0
 	for i := 0; i < cores; i++ {
@@ -63,7 +79,7 @@ func main() {
 	start = time.Now()
 
 	for i := 0; i < cores; i++ {
-		go testReadPerformance(path.Join(dir, fmt.Sprintf("bonnie.%d", i)), randomBlock, bytesReadorWritten)
+		go testReadPerformance(path.Join(bonnieDir, fmt.Sprintf("bonnie.%d", i)), randomBlock, bytesReadorWritten)
 	}
 	bytesRead := 0
 	for i := 0; i < cores; i++ {
