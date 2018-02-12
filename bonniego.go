@@ -178,37 +178,38 @@ func testReadPerformance(filename string, randomBlock []byte, bytesReadChannel c
 }
 
 func testIOPerformance(filename string, numOpsChannel chan<- int) {
-	diskBlock := 512 // in the olden days, disk blocks were 512 bytes
+	diskBlockSize := 0x1 << 9 // 512 bytes, nostalgia: in the olden (System V) days, disk blocks were 512 bytes
 	fileInfo, err := os.Stat(filename)
 	check(err)
-	fileSize := fileInfo.Size() - int64(diskBlock) // give myself room to not read past EOF
-	numOperations := 0x1 << 16                     // a fancy way of saying 65,536
+	fileSizeLessOneDiskBlock := fileInfo.Size() - int64(diskBlockSize) // give myself room to not read past EOF
+	numOperations := 0x1 << 16                                         // a fancy way of saying 65,536
 
 	f, err := os.OpenFile(filename, os.O_RDWR, 0644)
 	check(err)
 	defer f.Close()
 
-	data := make([]byte, diskBlock)
-	checksum := make([]byte, diskBlock)
+	data := make([]byte, diskBlockSize)
+	checksum := make([]byte, diskBlockSize)
 
-	for i := 0; i < numOperations; i++ {
-		f.Seek(rand.Int63n(fileSize), 0)
+	start := time.Now()
+	for i := 0; time.Now().Sub(start).Seconds() < 15.0; i++ { // run for 15 seconds then blow this taco joint
+		f.Seek(rand.Int63n(fileSizeLessOneDiskBlock), 0)
 		// TPC-E has a reads:writes ratio of 9.7:1  http://www.cs.cmu.edu/~chensm/papers/TPCE-sigmod-record10.pdf
 		// we round to 10:1
 		if i%10 != 0 {
 			length, err := f.Read(data)
 			check(err)
-			if length != diskBlock {
-				panic(fmt.Sprintf("I expected to read %d bytes, instead I read %d bytes!", diskBlock, length))
+			if length != diskBlockSize {
+				panic(fmt.Sprintf("I expected to read %d bytes, instead I read %d bytes!", diskBlockSize, length))
 			}
-			for i := 0; i < diskBlock; i++ {
-				checksum[i] ^= data[i]
+			for j := 0; j < diskBlockSize; j++ {
+				checksum[j] ^= data[j]
 			}
 		} else {
 			length, err := f.Write(checksum)
 			check(err)
-			if length != diskBlock {
-				panic(fmt.Sprintf("I expected to write %d bytes, instead I wrote %d bytes!", diskBlock, length))
+			if length != diskBlockSize {
+				panic(fmt.Sprintf("I expected to write %d bytes, instead I wrote %d bytes!", diskBlockSize, length))
 			}
 		}
 	}
