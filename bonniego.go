@@ -14,6 +14,7 @@ import (
 	"io"
 	"bytes"
 	"flag"
+	"log"
 )
 
 const Blocksize = 0x1 << 16 // 65,536 bytes, 2^16 bytes
@@ -21,10 +22,12 @@ const Blocksize = 0x1 << 16 // 65,536 bytes, 2^16 bytes
 func main() {
 	var bonnieTempDir, bonnieParentDir, bonnieDir string
 	var numProcs int
+	var verbose bool
 	bonnieTempDir, err := ioutil.TempDir("", "bonniegoParent")
 	check(err)
 	defer os.RemoveAll(bonnieTempDir)
 
+	flag.BoolVar(&verbose, "v", false, "Verbose. Will print to stderr diagnostic information such as the amount of RAM, number of cores, etc.")
 	flag.IntVar(&numProcs, "procs", runtime.NumCPU(), "The number of concurrent readers/writers, defaults to the number of CPU cores")
 	flag.StringVar(&bonnieParentDir, "dir", bonnieTempDir, "The directory in which bonniego places its temp files, should have at least twice system RAM available")
 	flag.Parse()
@@ -44,16 +47,17 @@ func main() {
 	err = os.Mkdir(bonnieDir, 0755)
 	check(err)
 	defer os.RemoveAll(bonnieDir)
-	fmt.Printf("directory: %s\n", bonnieDir)
-
-	fmt.Printf("cores: %d\n", numProcs)
 
 	mem := sigar.Mem{}
 	mem.Get()
-	fmt.Printf("memory: %d MiB\n", mem.Total>>20)
+	if verbose {
+		log.Printf("Bonnie working directory: %s\n", bonnieDir)
+		log.Printf("Number of concurrent processes: %d\n", numProcs)
+		log.Printf("Total System RAM (MiB): %d\n", mem.Total>>20)
+	}
 
 	fileSize := int(mem.Total) * 2 / numProcs
-	//fileSize = fileSize >> 4 // fixme: comment-out before committing. during testing; speeds up tests sixteen-fold
+	fileSize = fileSize >> 5 // fixme: comment-out before committing. during testing; speeds up tests thirty-two-fold
 
 	// randomBlock has random data to prevent filesystems which use compression (e.g. ZFS) from having an unfair advantage
 	// we're testing hardware throughput, not filesystem throughput
@@ -78,9 +82,11 @@ func main() {
 
 	finish := time.Now()
 	duration := finish.Sub(start)
-	fmt.Printf("wrote %d MiB\n", bytesWritten>>20)
-	fmt.Printf("took %f seconds\n", duration.Seconds())
-	fmt.Printf("throughput %0.2f MiB/s\n", float64(bytesWritten)/float64(duration.Seconds())/math.Exp2(20))
+	if verbose {
+		log.Printf("Written (MiB): %d\n", bytesWritten>>20)
+		log.Printf("Duration (seconds): %f\n", duration.Seconds())
+	}
+	fmt.Printf("Sequential Write MiB/s: %0.2f\n", float64(bytesWritten)/float64(duration.Seconds())/math.Exp2(20))
 
 	start = time.Now()
 
@@ -95,9 +101,11 @@ func main() {
 	finish = time.Now()
 	duration = finish.Sub(start)
 
-	fmt.Printf("read %d MiB\n", bytesRead>>20)
-	fmt.Printf("took %f seconds\n", duration.Seconds())
-	fmt.Printf("throughput %0.2f MiB/s\n", float64(bytesWritten)/float64(duration.Seconds())/math.Exp2(20))
+	if verbose {
+		log.Printf("Read (MiB): %d\n", bytesRead>>20)
+		log.Printf("Duration (seconds): %f\n", duration.Seconds())
+	}
+	fmt.Printf("Sequential Read MiB/s: %0.2f\n", float64(bytesWritten)/float64(duration.Seconds())/math.Exp2(20))
 
 	numOperationsChan := make(chan int)
 	start = time.Now()
@@ -113,9 +121,11 @@ func main() {
 	finish = time.Now()
 	duration = finish.Sub(start)
 
-	fmt.Printf("operations %d\n", numOperations)
-	fmt.Printf("took %f seconds\n", duration.Seconds())
-	fmt.Printf("IOPS %0.2f\n", float64(numOperations)/float64(duration.Seconds()))
+	if verbose {
+		log.Printf("operations %d\n", numOperations)
+		log.Printf("Duration (seconds): %f\n", duration.Seconds())
+	}
+	fmt.Printf("IOPS: %0.0f\n", float64(numOperations)/float64(duration.Seconds()))
 }
 
 func testWritePerformance(filename string, fileSize int, randomBlock []byte, bytesWrittenChannel chan<- int) {
