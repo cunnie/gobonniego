@@ -108,6 +108,11 @@ operation. The ratio of reads:writes is 10:1, in order to approximate the ratio
 that the TPC-E benchmark uses
 (<http://www.cs.cmu.edu/~chensm/papers/TPCE-sigmod-record10.pdf>).
 
+`bonniego` uses [`ioutil.TempDir()`](https://golang.org/pkg/io/ioutil/#TempDir)
+to create the temporary directory in which to place its files, unless
+overridden by the `-dir` flag. On Linux systems this temporary directory is
+under `/var`.
+
 ## Bugs
 
 If bonniego fills up the filesystem, it will crash and you will need to find &
