@@ -17,20 +17,27 @@ import (
 	"time"
 )
 
+const Version = "1.0.0"
 const Blocksize = 0x1 << 16 // 65,536 bytes, 2^16 bytes
 
 func main() {
 	var bonnieTempDir, bonnieParentDir, bonnieDir string
 	var numProcs int
-	var verbose bool
+	var verbose, version bool
 	bonnieTempDir, err := ioutil.TempDir("", "bonniegoParent")
 	check(err)
 	defer os.RemoveAll(bonnieTempDir)
 
 	flag.BoolVar(&verbose, "v", false, "Verbose. Will print to stderr diagnostic information such as the amount of RAM, number of cores, etc.")
+	flag.BoolVar(&version, "version", false, "Version. Will print the current version of bonniego and then exit")
 	flag.IntVar(&numProcs, "procs", runtime.NumCPU(), "The number of concurrent readers/writers, defaults to the number of CPU cores")
 	flag.StringVar(&bonnieParentDir, "dir", bonnieTempDir, "The directory in which bonniego places its temp files, should have at least twice system RAM available")
 	flag.Parse()
+
+	if version {
+		fmt.Printf("bonniego version %s\n", Version)
+		os.Exit(0)
+	}
 
 	// if bonnieParentDir exists, e.g. "/tmp", all is good, but if it doesn't, e.g. "/tmp/bonniego_run_five", then create it
 	fileInfo, err := os.Stat(bonnieParentDir)

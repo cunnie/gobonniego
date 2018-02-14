@@ -14,8 +14,7 @@ It presents three disk metrics:
 
 ## Examples
 
-The default settings are typically adequate; the program can be invoked without
-parameters:
+`bonniego` can be invoked without parameters; its defaults are reasonable.
 
 ```
 bonniego
@@ -70,6 +69,18 @@ flag. In this example, we spawn 8 threads:
 
 ```
 bonniego -procs 8
+```
+
+`-version` will display the current version of `bonniego`:
+
+```
+bonniego -version
+```
+
+Yields:
+
+```
+bonniego version 1.0.0
 ```
 
 ## Technical Notes
