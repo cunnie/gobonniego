@@ -83,14 +83,18 @@ cores.
 `bonniego` spawns one thread for each core unless overridden by the `-procs`
 flag.
 
-`bonniego` writes twice the amount of RAM in order to reduce the effect of
-[buffer cache](http://www.tldp.org/LDP/sag/html/buffer-cache.html), which may
-give misleadingly good results. For example, on a system with 16 GiB of RAM,
-`bonniego` would write 32 GiB of data.
+`bonniego` writes twice the amount of RAM.  For example, on a system with 16
+GiB of RAM, `bonniego` would write 32 GiB of data. This is to reduce the effect
+of the [buffer cache](http://www.tldp.org/LDP/sag/html/buffer-cache.html),
+which may give misleadingly good results.
 
 `bonniego` divides the total amount to write by the number of threads. For
 example, a 4-core system with 8 GiB of RAM would have four threads each of
 which would concurrently write 4 GiB of data for a total of 16 GiB.
+
+`bonniego` writes with buffered I/O; however, it waits for
+[`bufio.Flush()`](https://golang.org/pkg/bufio/#Writer.Flush) to complete
+before recording the duration.
 
 `bonniego` creates a 64 kiB chunk of random data which it writes in succession
 to disk.  It's random in order to avoid inflating the results for filesystems
@@ -116,8 +120,8 @@ under `/var`.
 ## Bugs
 
 If bonniego fills up the filesystem, it will crash and you will need to find &
-delete the `bonniego` files manually.  Look for the director that begins with
-`bonniegoParent` and delete it and everything underneath.
+delete the `bonniego` files manually.  Look for the directory that begins with
+the string `bonniegoParent` and delete it and everything underneath.
 
 ### Acknowledgements
 
