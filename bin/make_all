@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# Build binaries for macOS, Windows, Linux, FreeBSD
+#
+export GOOS GOARCH
+for GOOS in darwin linux windows; do
+  for GOARCH in amd64; do
+    go build -o $GOPATH/bin/bonniego-$GOOS-$GOARCH bonniego.go
+  done
+done
