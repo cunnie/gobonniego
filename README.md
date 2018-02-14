@@ -1,6 +1,6 @@
-## bonniego
+## `bonniego`
 
-bonniego is a _minimal_ implementation of Tim Bray's
+`bonniego` is a _minimal_ implementation of Tim Bray's
 [bonnie](https://code.google.com/p/bonnie-64/) written in Go (*bonnie* is
 written in C).
 
@@ -11,6 +11,23 @@ It presents three disk metrics:
 1. Sequential Write (higher is better)
 2. Sequential Read (higher is better)
 3. IOPS (I/O Operations per Second) (higher is better)
+
+## Getting `bonniego`
+
+Easiest way to get `bonniego` is to download the pre-built binaries on the
+[Releases](https://github.com/cunnie/bonniego/releases/).  In the following
+example, we are logged into a Linux box and we download and run the Linux
+binary:
+
+```
+curl -o bonniego -L https://github.com/cunnie/bonniego/releases/download/1.0.0/bonniego-linux-amd64
+chmod +x bonniego
+./bonniego
+```
+
+Alternatively, you can build `bonniego` from source.
+[Here](https://gobyexample.com/command-line-arguments) is a good place to
+start.
 
 ## Examples
 
@@ -83,6 +100,20 @@ Yields:
 bonniego version 1.0.0
 ```
 
+`bonniego -h` will print out the available command line options and their
+current default values:
+
+```
+Usage of ./bonniego:
+  -dir string
+        The directory in which bonniego places its temp files, should have at least twice system RAM available (default "/tmp/bonniegoParent139558072")
+  -procs int
+        The number of concurrent readers/writers, defaults to the number of CPU cores (default 8)
+  -v    Verbose. Will print to stderr diagnostic information such as the amount of RAM, number of cores, etc.
+  -version
+        Version. Will print the current version of bonniego and then exit
+```
+
 ## Technical Notes
 
 `bonniego` detects the number of CPU cores and the amount of RAM.
@@ -126,17 +157,42 @@ that the TPC-E benchmark uses
 `bonniego` uses [`ioutil.TempDir()`](https://golang.org/pkg/io/ioutil/#TempDir)
 to create the temporary directory in which to place its files, unless
 overridden by the `-dir` flag. On Linux systems this temporary directory is
-under `/var`.
+often `/tmp/`, on macOS systems, `/var/folders/...`.
 
 ## Bugs
 
-If bonniego fills up the filesystem, it will crash and you will need to find &
-delete the `bonniego` files manually.  Look for the directory that begins with
-the string `bonniegoParent` and delete it and everything underneath.
+If `bonniego` fills up the filesystem, it will crash and you will need to find
+& delete the `bonniego` files manually. Below is a sample `find` command to
+locate the `bonniego` directory; delete that directory and everything
+underneath:
+
+```
+find / -name bonniegoParent\*
+```
+
+`bonniego` doesn't work on FreeBSD yet; it depends on the
+[gosigar](https://github.com/cloudfoundry/gosigar) library which doesn't have
+the FreeBSD implementations for the calls that the determine the number of CPU
+cores and the amount of system RAM.
 
 ### Acknowledgements
 
-The impetus for writing it in Go is to provide concurrency.  During a benchmark
-of a ZFS filesystem (using *bonnie++*, not *bonnie*), it became clear that a
-the single-threaded performance of *bonnie++* and not the speed of the disks
-were the limiting factor.
+[Tim Bray](https://www.tbray.org/ongoing/) wrote the original `bonnie` which
+inspired Russell Coker to write
+[`bonnie++`](https://www.coker.com.au/bonnie++/) which was used to measure ZFS
+performance in calomel.org's
+[post](https://calomel.org/zfs_raid_speed_capacity.html) which inspired me to
+build a ZFS-based
+[NAS](https://content.pivotal.io/blog/a-high-performing-mid-range-nas-server)
+and
+[benchmark](https://content.pivotal.io/blog/a-high-performing-mid-range-nas-server-part-2-performance-tuning-for-iscsi)
+it. And credit must be given to Brendan Gregg's excellent post, _[Active
+Benchmarking:
+Bonnie++](http://www.brendangregg.com/ActiveBenchmarking/bonnie++.html)_.
+
+### Impetus
+
+The impetus for writing `bonniego` is to provide concurrency.  During a benchmark
+of a ZFS filesystem (using *bonnie++*), it became clear that a
+the single-threaded performance of *bonnie++* and not disk
+speed was the limiting factor.
