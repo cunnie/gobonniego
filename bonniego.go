@@ -1,20 +1,20 @@
 package main
 
 import (
-	"fmt"
-	"time"
-	"os"
 	"bufio"
-	"math/rand"
-	"math"
-	"runtime"
-	"github.com/cloudfoundry/gosigar"
-	"io/ioutil"
-	"path"
-	"io"
 	"bytes"
 	"flag"
+	"fmt"
+	"github.com/cloudfoundry/gosigar"
+	"io"
+	"io/ioutil"
 	"log"
+	"math"
+	"math/rand"
+	"os"
+	"path"
+	"runtime"
+	"time"
 )
 
 const Blocksize = 0x1 << 16 // 65,536 bytes, 2^16 bytes
@@ -39,7 +39,7 @@ func main() {
 		check(err)
 		defer os.RemoveAll(bonnieParentDir)
 	}
-	if ! fileInfo.IsDir() {
+	if !fileInfo.IsDir() {
 		panic(fmt.Sprintf("'%s' is not a directory!", bonnieParentDir))
 	}
 
@@ -167,7 +167,7 @@ func testReadPerformance(filename string, randomBlock []byte, bytesReadChannel c
 		// once every 127 blocks, do a sanity check. 127 is prime to avoid collisions
 		// e.g. 128 would check every block, not every 128th block
 		if bytesRead%127 == 0 {
-			if ! bytes.Equal(randomBlock, data) {
+			if !bytes.Equal(randomBlock, data) {
 				panic("last block didn't match")
 			}
 		}
