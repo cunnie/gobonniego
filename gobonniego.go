@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/cloudfoundry/gosigar"
+	"github.com/cunnie/gobonniego/getmem"
 	"io"
 	"io/ioutil"
 	"log"
@@ -55,15 +55,15 @@ func main() {
 	check(err)
 	defer os.RemoveAll(bonnieDir)
 
-	mem := sigar.Mem{}
-	mem.Get()
+	physicalMemory, err := getmem.Getmem()
+	check(err)
 	if verbose {
 		log.Printf("Bonnie working directory: %s\n", bonnieDir)
 		log.Printf("Number of concurrent processes: %d\n", numProcs)
-		log.Printf("Total System RAM (MiB): %d\n", mem.Total>>20)
+		log.Printf("Total System RAM (MiB): %d\n", physicalMemory>>20)
 	}
 
-	fileSize := int(mem.Total) * 2 / numProcs
+	fileSize := int(physicalMemory) * 2 / numProcs
 	//fileSize = fileSize >> 5 // fixme: comment-out before committing. during testing; speeds up tests thirty-two-fold
 
 	// randomBlock has random data to prevent filesystems which use compression (e.g. ZFS) from having an unfair advantage

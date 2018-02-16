@@ -3,7 +3,7 @@
 # Build binaries for macOS, Windows, Linux, FreeBSD
 #
 export GOOS GOARCH
-for GOOS in darwin linux; do
+for GOOS in darwin linux freebsd; do
   for GOARCH in amd64; do
     go build -o $GOPATH/bin/gobonniego-$GOOS-$GOARCH gobonniego.go
   done
