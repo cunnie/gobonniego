@@ -22,15 +22,18 @@ const Blocksize = 0x1 << 16 // 65,536 bytes, 2^16 bytes
 
 func main() {
 	var bonnieTempDir, bonnieParentDir, bonnieDir string
-	var numProcs int
+	var numReadersWriters, aggregateTestFilesSizeInGiB int
 	var verbose, version bool
 	bonnieTempDir, err := ioutil.TempDir("", "gobonniegoParent")
 	check(err)
 	defer os.RemoveAll(bonnieTempDir)
+	physicalMemory, err := getmem.Getmem()
+	check(err)
 
 	flag.BoolVar(&verbose, "v", false, "Verbose. Will print to stderr diagnostic information such as the amount of RAM, number of cores, etc.")
 	flag.BoolVar(&version, "version", false, "Version. Will print the current version of gobonniego and then exit")
-	flag.IntVar(&numProcs, "procs", runtime.NumCPU(), "The number of concurrent readers/writers, defaults to the number of CPU cores")
+	flag.IntVar(&numReadersWriters, "threads", runtime.NumCPU(), "The number of concurrent readers/writers, defaults to the number of CPU cores")
+	flag.IntVar(&aggregateTestFilesSizeInGiB, "size", 2*int(physicalMemory)>>30, "The aggregate size of disk test files in GiB, defaults to twice the physical RAM")
 	flag.StringVar(&bonnieParentDir, "dir", bonnieTempDir, "The directory in which gobonniego places its temp files, should have at least twice system RAM available")
 	flag.Parse()
 
@@ -55,19 +58,17 @@ func main() {
 	check(err)
 	defer os.RemoveAll(bonnieDir)
 
-	physicalMemory, err := getmem.Getmem()
-	check(err)
 	if verbose {
+		log.Printf("Number of CPU cores: %d\n", runtime.NumCPU())
+		log.Printf("Number of concurrent threads: %d\n", numReadersWriters)
+		log.Printf("Total system RAM (MiB): %d\n", physicalMemory>>20)
+		log.Printf("Amount of disk space to be used during test (MiB): %d\n", aggregateTestFilesSizeInGiB<<10)
 		log.Printf("Bonnie working directory: %s\n", bonnieDir)
-		log.Printf("Number of concurrent processes: %d\n", numProcs)
-		log.Printf("Total System RAM (MiB): %d\n", physicalMemory>>20)
 	}
 
-	fileSize := int(physicalMemory) * 2 / numProcs
-	//fileSize = fileSize >> 5 // fixme: comment-out before committing. during testing; speeds up tests thirty-two-fold
+	fileSize := (aggregateTestFilesSizeInGiB << 30) / numReadersWriters
 
 	// randomBlock has random data to prevent filesystems which use compression (e.g. ZFS) from having an unfair advantage
-	// we're testing hardware throughput, not filesystem throughput
 	randomBlock := make([]byte, Blocksize)
 	lenRandom, err := rand.Read(randomBlock)
 	check(err)
@@ -79,11 +80,11 @@ func main() {
 
 	bytesReadorWritten := make(chan int)
 
-	for i := 0; i < numProcs; i++ {
+	for i := 0; i < numReadersWriters; i++ {
 		go testWritePerformance(path.Join(bonnieDir, fmt.Sprintf("bonnie.%d", i)), fileSize, randomBlock, bytesReadorWritten)
 	}
 	bytesWritten := 0
-	for i := 0; i < numProcs; i++ {
+	for i := 0; i < numReadersWriters; i++ {
 		bytesWritten += <-bytesReadorWritten
 	}
 
@@ -97,11 +98,11 @@ func main() {
 
 	start = time.Now()
 
-	for i := 0; i < numProcs; i++ {
+	for i := 0; i < numReadersWriters; i++ {
 		go testReadPerformance(path.Join(bonnieDir, fmt.Sprintf("bonnie.%d", i)), randomBlock, bytesReadorWritten)
 	}
 	bytesRead := 0
-	for i := 0; i < numProcs; i++ {
+	for i := 0; i < numReadersWriters; i++ {
 		bytesRead += <-bytesReadorWritten
 	}
 
@@ -117,11 +118,11 @@ func main() {
 	numOperationsChan := make(chan int)
 	start = time.Now()
 
-	for i := 0; i < numProcs; i++ {
+	for i := 0; i < numReadersWriters; i++ {
 		go testIOPerformance(path.Join(bonnieDir, fmt.Sprintf("bonnie.%d", i)), numOperationsChan)
 	}
 	numOperations := 0
-	for i := 0; i < numProcs; i++ {
+	for i := 0; i < numReadersWriters; i++ {
 		numOperations += <-numOperationsChan
 	}
 

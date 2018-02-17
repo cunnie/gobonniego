@@ -1,7 +1,7 @@
 ## Go Bonnie Go!
 
-`gobonniego` is a _minimal_ implementation of Tim Bray's
-[bonnie](https://code.google.com/p/bonnie-64/) written in Go (*bonnie* is
+`gobonniego` is a _minimal_ Golang implementation of Tim Bray's
+[bonnie](https://code.google.com/p/bonnie-64/) (*bonnie* is
 written in C).
 
 It measures disk throughput by reading and writing files.
@@ -14,10 +14,10 @@ It presents three disk metrics:
 
 ## Getting `gobonniego`
 
-Easiest way to get `gobonniego` is to download the pre-built binaries on the
-[Releases](https://github.com/cunnie/gobonniego/releases/).  In the following
-example, we are logged into a Linux box and we download and run the Linux
-binary:
+The easiest way to get `gobonniego` is to download the pre-built binaries in the
+[Releases](https://github.com/cunnie/gobonniego/releases/) section.  In the
+following example, we are logged into a Linux box and we download and run the
+Linux binary:
 
 ```
 curl -o gobonniego -L https://github.com/cunnie/gobonniego/releases/download/1.0.1/gobonniego-linux-amd64
@@ -25,9 +25,13 @@ chmod +x gobonniego
 ./gobonniego
 ```
 
-Alternatively, you can build `gobonniego` from source.
-[Here](https://gobyexample.com/command-line-arguments) is a good place to
-start.
+Alternatively, you can run `gobonniego` from source if you're a Golang developer:
+
+```
+go get github.com/cunnie/gobonniego
+cd $GOPATH/src/github.com/cunnie/gobonniego
+go run gobonniego.go  # "Go Bonnie Go, Go"!
+```
 
 ## Examples
 
@@ -45,7 +49,7 @@ Sequential Read MiB/s: 6729.41
 IOPS: 26156
 ```
 
-Running with the verbose option will print additional timestamped information
+Running with the verbose option (`-v`) will print additional timestamped information
 to STDERR:
 
 ```
@@ -55,21 +59,23 @@ gobonniego -v
 Yields:
 
 ```
-2018/02/12 08:05:02 Bonnie working directory: /var/folders/zp/vmj1nyzj6p567k5syt3hvq3h0000gn/T/gobonniegoParent649139571/gobonniego
-2018/02/12 08:05:02 Number of concurrent processes: 4
-2018/02/12 08:05:02 Total System RAM (MiB): 16384
-2018/02/12 08:05:03 Written (MiB): 1024
-2018/02/12 08:05:03 Duration (seconds): 0.833131
-Sequential Write MiB/s: 1229.10
-2018/02/12 08:05:03 Read (MiB): 1024
-2018/02/12 08:05:03 Duration (seconds): 0.152168
-Sequential Read MiB/s: 6729.41
-2018/02/12 08:05:13 operations 262144
-2018/02/12 08:05:13 Duration (seconds): 10.022507
-IOPS: 26156
+2018/02/17 09:48:35 Number of CPU cores: 8
+2018/02/17 09:48:35 Number of concurrent threads: 8
+2018/02/17 09:48:35 Total system RAM (MiB): 1024
+2018/02/17 09:48:35 Amount of disk space to be used during test (MiB): 1024
+2018/02/17 09:48:35 Bonnie working directory: /var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/gobonniegoParent275808164/gobonniego
+2018/02/17 09:48:38 Written (MiB): 1024
+2018/02/17 09:48:38 Duration (seconds): 2.556555
+Sequential Write MiB/s: 400.54
+2018/02/17 09:48:38 Read (MiB): 1024
+2018/02/17 09:48:38 Duration (seconds): 0.063138
+Sequential Read MiB/s: 16218.43
+2018/02/17 09:48:53 operations 524288
+2018/02/17 09:48:53 Duration (seconds): 15.017886
+IOPS: 34911
 ```
 
-You can tell `gobonniego` where to place its test files. This is useful if the
+You can specify the placement of `gobonniego`'s test files. This is useful if the
 default filesystem is too small or if you want to test a specific disk.
 `gobonniego` will clean up after itself, and will not delete the directory it's
 told to run in (you can safely specify `/tmp` or `/` as the directory). Here
@@ -79,13 +85,14 @@ are some examples:
 gobonniego -dir D:\
 gobonniego -dir /tmp
 gobonniego -dir /zfs/tank
+gobonniego -dir /Volumes/USB
 ```
 
-You may specify the number of threads (Goroutines) to run with the `-procs`
+You may specify the number of threads (Goroutines) to run with the `-threads`
 flag. In this example, we spawn 8 threads:
 
 ```
-gobonniego -procs 8
+gobonniego -threads 8
 ```
 
 `-version` will display the current version of `gobonniego`:
@@ -97,21 +104,23 @@ gobonniego -version
 Yields:
 
 ```
-gobonniego version 1.0.0
+gobonniego version 1.0.1
 ```
 
 `gobonniego -h` will print out the available command line options and their
 current default values:
 
 ```
-Usage of ./gobonniego:
+Usage of /var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/go-build844154903/b001/exe/gobonniego:
   -dir string
-        The directory in which gobonniego places its temp files, should have at least twice system RAM available (default "/tmp/gobonniegoParent139558072")
-  -procs int
-        The number of concurrent readers/writers, defaults to the number of CPU cores (default 8)
-  -v    Verbose. Will print to stderr diagnostic information such as the amount of RAM, number of cores, etc.
+    	The directory in which gobonniego places its temp files, should have at least twice system RAM available (default "/var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/gobonniegoParent543610505")
+  -threads int
+    	The number of concurrent readers/writers, defaults to the number of CPU cores (default 8)
+  -size int
+    	The aggregate size of disk test files in GiB, defaults to twice the physical RAM (default 128)
+  -v	Verbose. Will print to stderr diagnostic information such as the amount of RAM, number of cores, etc.
   -version
-        Version. Will print the current version of gobonniego and then exit
+    	Version. Will print the current version of gobonniego and then exit
 ```
 
 ## Technical Notes
@@ -122,13 +131,17 @@ The number of cores may not match the number of physical cores. For example, an
 Intel core i5 with two physical cores and hyperthreading is detected as 4
 cores.
 
-`gobonniego` spawns one thread for each core unless overridden by the `-procs`
+`gobonniego` spawns one thread for each core unless overridden by the `-threads`
 flag.
 
-`gobonniego` writes twice the amount of RAM.  For example, on a system with 16
-GiB of RAM, `gobonniego` would write 32 GiB of data. This is to reduce the effect
-of the [buffer cache](http://www.tldp.org/LDP/sag/html/buffer-cache.html),
-which may give misleadingly good results.
+`gobonniego` writes twice the amount of RAM unless overridden with the `-size`
+flag.  For example, on a system with 16 GiB of RAM, `gobonniego` would write 32
+GiB of data. This is to reduce the effect of the [buffer
+cache](http://www.tldp.org/LDP/sag/html/buffer-cache.html), which may give
+misleadingly good results.
+
+If the sequential read performance is several multiples of the sequential write
+performance, it's likely that the buffer cache has skewed the results.
 
 `gobonniego` divides the total amount to write by the number of threads. For
 example, a 4-core system with 8 GiB of RAM would have four threads each of
@@ -154,10 +167,15 @@ operation. The ratio of reads:writes is 10:1, in order to approximate the ratio
 that the TPC-E benchmark uses
 (<http://www.cs.cmu.edu/~chensm/papers/TPCE-sigmod-record10.pdf>).
 
-`gobonniego` uses [`ioutil.TempDir()`](https://golang.org/pkg/io/ioutil/#TempDir)
-to create the temporary directory in which to place its files, unless
-overridden by the `-dir` flag. On Linux systems this temporary directory is
-often `/tmp/`, on macOS systems, `/var/folders/...`.
+The IOPS measurement cycle runs for approximately 15 seconds, at the end of
+which `gobonniego` tallies up the number of I/O operations and divides by the
+duration of the test.
+
+`gobonniego` uses
+[`ioutil.TempDir()`](https://golang.org/pkg/io/ioutil/#TempDir) to create the
+temporary directory in which to place its files, unless overridden by the
+`-dir` flag. On Linux systems this temporary directory is often `/tmp/`, on
+macOS systems, `/var/folders/...`.
 
 ## Bugs
 
@@ -169,11 +187,6 @@ underneath:
 ```
 find / -name gobonniegoParent\*
 ```
-
-`gobonniego` doesn't work on FreeBSD yet; it depends on the
-[gosigar](https://github.com/cloudfoundry/gosigar) library which doesn't have
-the FreeBSD implementations for the calls that the determine the number of CPU
-cores and the amount of system RAM.
 
 ### Acknowledgements
 
@@ -203,7 +216,7 @@ phrase, "Go Johnny go"
 
 ### Impetus
 
-The impetus for writing `gobonniego` is to provide concurrency.  During a benchmark
-of a ZFS filesystem (using *bonnie++*), it became clear that a
-the single-threaded performance of *bonnie++* and not disk
-speed was the limiting factor.
+The impetus for writing `gobonniego` is to provide concurrency.  During a
+benchmark of a ZFS filesystem (using *bonnie++*), it became clear that a the
+single-threaded performance of *bonnie++* and not disk speed was the limiting
+factor.
