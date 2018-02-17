@@ -44,9 +44,10 @@ gobonniego
 Typical output:
 
 ```
-Sequential Write MiB/s: 1229.10
-Sequential Read MiB/s: 6729.41
-IOPS: 26156
+2018/02/17 12:15:29 gobonniego starting. version: 1.0.2, threads: 8, disk space to use (MiB): 1024
+Sequential Write MB/s: 428.59
+Sequential Read MB/s: 725.12
+IOPS: 34922
 ```
 
 Running with the verbose option (`-v`) will print additional timestamped information
@@ -59,24 +60,23 @@ gobonniego -v
 Yields:
 
 ```
-2018/02/17 09:48:35 Number of CPU cores: 8
-2018/02/17 09:48:35 Number of concurrent threads: 8
-2018/02/17 09:48:35 Total system RAM (MiB): 1024
-2018/02/17 09:48:35 Amount of disk space to be used during test (MiB): 1024
-2018/02/17 09:48:35 Bonnie working directory: /var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/gobonniegoParent275808164/gobonniego
-2018/02/17 09:48:38 Written (MiB): 1024
-2018/02/17 09:48:38 Duration (seconds): 2.556555
-Sequential Write MiB/s: 400.54
-2018/02/17 09:48:38 Read (MiB): 1024
-2018/02/17 09:48:38 Duration (seconds): 0.063138
-Sequential Read MiB/s: 16218.43
-2018/02/17 09:48:53 operations 524288
-2018/02/17 09:48:53 Duration (seconds): 15.017886
-IOPS: 34911
+2018/02/17 12:20:14 gobonniego starting. version: 1.0.2, threads: 8, disk space to use (MiB): 1024
+2018/02/17 12:20:14 Number of CPU cores: 8
+2018/02/17 12:20:14 Total system RAM (MiB): 1024
+2018/02/17 12:20:14 Bonnie working directory: /var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/gobonniegoParent378702694/gobonniego
+2018/02/17 12:20:17 Written (MiB): 1024
+2018/02/17 12:20:17 Duration (seconds): 2.258734
+Sequential Write MB/s: 475.37
+2018/02/17 12:20:17 Read (MiB): 1024
+2018/02/17 12:20:17 Duration (seconds): 0.050653
+Sequential Read MB/s: 21197.98
+2018/02/17 12:20:32 operations 524288
+2018/02/17 12:20:32 Duration (seconds): 15.000763
+IOPS: 34951
 ```
 
 You can specify the placement of `gobonniego`'s test files. This is useful if the
-default filesystem is too small or if you want to test a specific disk.
+default filesystem is too small or if you want to test a specific filesystem/disk.
 `gobonniego` will clean up after itself, and will not delete the directory it's
 told to run in (you can safely specify `/tmp` or `/` as the directory). Here
 are some examples:
@@ -95,6 +95,14 @@ flag. In this example, we spawn 8 threads:
 gobonniego -threads 8
 ```
 
+You may specify the amount of disk space `gobonniego` should use with the `-size` flag
+which takes an integer argument (in GiB). This can be used to iterate rapidly while testing.
+For example, to constrain `gobonniego` to use only 1 GiB of disk space, type the following:
+
+```
+gobonniego -size 1
+```
+
 `-version` will display the current version of `gobonniego`:
 
 ```
@@ -111,13 +119,13 @@ gobonniego version 1.0.2
 current default values:
 
 ```
-Usage of /var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/go-build844154903/b001/exe/gobonniego:
+Usage of ./gobonniego:
   -dir string
-    	The directory in which gobonniego places its temp files, should have at least twice system RAM available (default "/var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/gobonniegoParent543610505")
+    	The directory in which gobonniego places its temp files, should have at least twice system RAM available (default "/var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/gobonniegoParent228822257")
+  -size int
+    	The amount of disk space to use (in GiB), defaults to twice the physical RAM (default 128)
   -threads int
     	The number of concurrent readers/writers, defaults to the number of CPU cores (default 8)
-  -size int
-    	The aggregate size of disk test files in GiB, defaults to twice the physical RAM (default 128)
   -v	Verbose. Will print to stderr diagnostic information such as the amount of RAM, number of cores, etc.
   -version
     	Version. Will print the current version of gobonniego and then exit
@@ -176,6 +184,15 @@ duration of the test.
 temporary directory in which to place its files, unless overridden by the
 `-dir` flag. On Linux systems this temporary directory is often `/tmp/`, on
 macOS systems, `/var/folders/...`.
+
+`gobonniego` measures bytes in [MiB](https://en.wikipedia.org/wiki/Mebibyte) and GiB:
+
+- 1 MiB == 2<sup>20</sup> == 1,048,576
+- 1 GiB == 2<sup>30</sup> == 1,073,741,824
+
+However, the output of the read and write metrics are in MB/s
+(Megabytes/second, i.e. 1,000,000 bytes per second) to conform with the
+industry norm.
 
 ## Bugs
 

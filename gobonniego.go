@@ -9,7 +9,6 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"math"
 	"math/rand"
 	"os"
 	"path"
@@ -33,7 +32,7 @@ func main() {
 	flag.BoolVar(&verbose, "v", false, "Verbose. Will print to stderr diagnostic information such as the amount of RAM, number of cores, etc.")
 	flag.BoolVar(&version, "version", false, "Version. Will print the current version of gobonniego and then exit")
 	flag.IntVar(&numReadersWriters, "threads", runtime.NumCPU(), "The number of concurrent readers/writers, defaults to the number of CPU cores")
-	flag.IntVar(&aggregateTestFilesSizeInGiB, "size", 2*int(physicalMemory)>>30, "The aggregate size of disk test files in GiB, defaults to twice the physical RAM")
+	flag.IntVar(&aggregateTestFilesSizeInGiB, "size", 2*int(physicalMemory)>>30, "The amount of disk space to use (in GiB), defaults to twice the physical RAM")
 	flag.StringVar(&bonnieParentDir, "dir", bonnieTempDir, "The directory in which gobonniego places its temp files, should have at least twice system RAM available")
 	flag.Parse()
 
@@ -58,12 +57,11 @@ func main() {
 	check(err)
 	defer os.RemoveAll(bonnieDir)
 
+	log.Printf("gobonniego starting. version: %s, threads: %d, disk space to use (MiB): %d", Version, numReadersWriters, aggregateTestFilesSizeInGiB<<10)
 	if verbose {
-		log.Printf("Number of CPU cores: %d\n", runtime.NumCPU())
-		log.Printf("Number of concurrent threads: %d\n", numReadersWriters)
-		log.Printf("Total system RAM (MiB): %d\n", physicalMemory>>20)
-		log.Printf("Amount of disk space to be used during test (MiB): %d\n", aggregateTestFilesSizeInGiB<<10)
-		log.Printf("Bonnie working directory: %s\n", bonnieDir)
+		log.Printf("Number of CPU cores: %d", runtime.NumCPU())
+		log.Printf("Total system RAM (MiB): %d", physicalMemory>>20)
+		log.Printf("Bonnie working directory: %s", bonnieDir)
 	}
 
 	fileSize := (aggregateTestFilesSizeInGiB << 30) / numReadersWriters
@@ -94,7 +92,7 @@ func main() {
 		log.Printf("Written (MiB): %d\n", bytesWritten>>20)
 		log.Printf("Duration (seconds): %f\n", duration.Seconds())
 	}
-	fmt.Printf("Sequential Write MiB/s: %0.2f\n", float64(bytesWritten)/float64(duration.Seconds())/math.Exp2(20))
+	fmt.Printf("Sequential Write MB/s: %0.2f\n", float64(bytesWritten)/float64(duration.Seconds())/1000000)
 
 	start = time.Now()
 
@@ -113,7 +111,7 @@ func main() {
 		log.Printf("Read (MiB): %d\n", bytesRead>>20)
 		log.Printf("Duration (seconds): %f\n", duration.Seconds())
 	}
-	fmt.Printf("Sequential Read MiB/s: %0.2f\n", float64(bytesWritten)/float64(duration.Seconds())/math.Exp2(20))
+	fmt.Printf("Sequential Read MB/s: %0.2f\n", float64(bytesWritten)/float64(duration.Seconds())/1000000)
 
 	numOperationsChan := make(chan int)
 	start = time.Now()
