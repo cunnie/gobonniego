@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-const Version = "1.0.1"
+const Version = "1.0.2"
 const Blocksize = 0x1 << 16 // 65,536 bytes, 2^16 bytes
 
 func main() {

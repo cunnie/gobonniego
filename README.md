@@ -20,7 +20,7 @@ following example, we are logged into a Linux box and we download and run the
 Linux binary:
 
 ```
-curl -o gobonniego -L https://github.com/cunnie/gobonniego/releases/download/1.0.1/gobonniego-linux-amd64
+curl -o gobonniego -L https://github.com/cunnie/gobonniego/releases/download/1.0.2/gobonniego-linux-amd64
 chmod +x gobonniego
 ./gobonniego
 ```
@@ -104,7 +104,7 @@ gobonniego -version
 Yields:
 
 ```
-gobonniego version 1.0.1
+gobonniego version 1.0.2
 ```
 
 `gobonniego -h` will print out the available command line options and their
