@@ -5,10 +5,10 @@
 export GOOS GOARCH
 for GOOS in darwin linux freebsd; do
   for GOARCH in amd64; do
-    go build -o $GOPATH/bin/gobonniego-$GOOS-$GOARCH gobonniego.go
+    go build -o $GOPATH/bin/gobonniego-$GOOS-$GOARCH gobonniego/gobonniego.go
   done
 done
 
 # Windows has a custom extension
 GOOS=windows GOARCH=amd64
-go build -o $GOPATH/bin/gobonniego-$GOOS-$GOARCH.exe gobonniego.go
+go build -o $GOPATH/bin/gobonniego-$GOOS-$GOARCH.exe gobonniego/gobonniego.go

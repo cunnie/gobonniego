@@ -1,4 +1,4 @@
-package getmem
+package mem
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"unsafe"
 )
 
-func Getmem() (uint64, error) {
+func Get() (uint64, error) {
 	var physMem uint64
 
 	if err := sysctlbyname("hw.physmem", &physMem); err != nil {

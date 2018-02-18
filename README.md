@@ -30,7 +30,7 @@ Alternatively, you can run `gobonniego` from source if you're a Golang developer
 ```
 go get github.com/cunnie/gobonniego
 cd $GOPATH/src/github.com/cunnie/gobonniego
-go run gobonniego.go  # "Go Bonnie Go, Go"!
+go run gobonniego/gobonniego.go  # "Go Bonnie Go, Go"!
 ```
 
 ## Examples
@@ -187,8 +187,8 @@ macOS systems, `/var/folders/...`.
 
 `gobonniego` measures bytes in [MiB](https://en.wikipedia.org/wiki/Mebibyte) and GiB:
 
-- 1 MiB == 2<sup>20</sup> == 1,048,576
-- 1 GiB == 2<sup>30</sup> == 1,073,741,824
+- 1 MiB == 2<sup>20</sup> bytes == 1,048,576 bytes
+- 1 GiB == 2<sup>30</sup> bytes == 1,073,741,824 bytes
 
 However, the output of the read and write metrics are in MB/s
 (Megabytes/second, i.e. 1,000,000 bytes per second) to conform with the
