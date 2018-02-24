@@ -60,6 +60,7 @@ func main() {
 	bm.RunSequentialWriteTest()
 	if verbose {
 		log.Printf("Written (MiB): %d\n", bm.Result.WrittenBytes>>20)
+		log.Printf("Written (MB): %d\n", bm.Result.WrittenBytes/1000000)
 		log.Printf("Duration (seconds): %f\n", bm.Result.WrittenDuration.Seconds())
 	}
 	fmt.Printf("Sequential Write MB/s: %0.2f\n",
@@ -68,6 +69,7 @@ func main() {
 	bm.RunSequentialReadTest()
 	if verbose {
 		log.Printf("Read (MiB): %d\n", bm.Result.ReadBytes>>20)
+		log.Printf("Read (MB): %d\n", bm.Result.ReadBytes/1000000)
 		log.Printf("Duration (seconds): %f\n", bm.Result.ReadDuration.Seconds())
 	}
 	fmt.Printf("Sequential Read MB/s: %0.2f\n",

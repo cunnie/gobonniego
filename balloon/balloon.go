@@ -1,10 +1,10 @@
 package main
 
 import (
-	"math/rand"
 	"fmt"
 	"github.com/cunnie/gobonniego/mem"
 	"log"
+	"math/rand"
 )
 
 const Blocksize = 1 << 20 // 1 MiB
@@ -13,7 +13,7 @@ const Blocksize = 1 << 20 // 1 MiB
  Balloon tries to consume enough memory to force the kernel to evict the buffer cache from RAM
 
  It's useful for disk benchmarks when you don't want the buffer cache to influence the results
- */
+*/
 
 func main() {
 	var balloon [][]byte
