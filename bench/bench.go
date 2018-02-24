@@ -88,7 +88,7 @@ func (bm *Mark) SetBonnieDir(parentDir string) error {
 	if err != nil {
 		err = os.Mkdir(parentDir, 0755)
 		if err != nil {
-			return err
+			return fmt.Errorf("SetBonnieDir(): %s", err)
 		}
 	}
 	if !fileInfo.IsDir() {
@@ -97,7 +97,7 @@ func (bm *Mark) SetBonnieDir(parentDir string) error {
 	bm.BonnieDir = path.Join(parentDir, "gobonniego")
 	err = os.Mkdir(bm.BonnieDir, 0755)
 	if err != nil {
-		return err
+		return fmt.Errorf("SetBonnieDir(): %s", err)
 	}
 	return nil
 }
@@ -107,10 +107,11 @@ func (bm *Mark) CreateRandomBlock() error {
 	bm.randomBlock = make([]byte, Blocksize)
 	lenRandom, err := rand.Read(bm.randomBlock)
 	if err != nil {
-		return err
+		return fmt.Errorf("CreateRandomBlock(): %s", err)
 	}
 	if len(bm.randomBlock) != lenRandom {
-		return errors.New("RandomBlock didn't get the correct number of bytes")
+		return fmt.Errorf("CreateRandomBlock(): RandomBlock didn't get the correct number of bytes, %d != %d",
+			len(bm.randomBlock), lenRandom)
 	}
 	return nil
 }
