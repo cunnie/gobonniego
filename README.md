@@ -20,7 +20,7 @@ following example, we are logged into a Linux box and we download and run the
 Linux binary:
 
 ```
-curl -o gobonniego -L https://github.com/cunnie/gobonniego/releases/download/1.0.3/gobonniego-linux-amd64
+curl -o gobonniego -L https://github.com/cunnie/gobonniego/releases/download/1.0.4/gobonniego-linux-amd64
 chmod +x gobonniego
 ./gobonniego
 ```
@@ -44,7 +44,7 @@ gobonniego
 Typical output:
 
 ```
-2018/02/19 12:03:16 gobonniego starting. version: 1.0.3, threads: 8, disk space to use (MiB): 3984
+2018/02/19 12:03:16 gobonniego starting. version: 1.0.4, threads: 8, disk space to use (MiB): 3984
 Sequential Write MB/s: 748.22
 Sequential Read MB/s: 1025.19
 IOPS: 23832
@@ -60,19 +60,21 @@ gobonniego -v
 Yields:
 
 ```
-2018/02/19 12:04:14 gobonniego starting. version: 1.0.3, threads: 8, disk space to use (MiB): 3984
-2018/02/19 12:04:14 Number of CPU cores: 8
-2018/02/19 12:04:14 Total system RAM (MiB): 1992
-2018/02/19 12:04:14 Bonnie working directory: /tmp/gobonniegoParent156539821
-2018/02/19 12:04:20 Written (MiB): 3984
-2018/02/19 12:04:20 Duration (seconds): 5.592828
-Sequential Write MB/s: 746.94
-2018/02/19 12:04:24 Read (MiB): 3984
-2018/02/19 12:04:24 Duration (seconds): 4.213461
-Sequential Read MB/s: 991.47
-2018/02/19 12:04:39 operations 397532
-2018/02/19 12:04:39 Duration (seconds): 15.003075
-IOPS: 26497
+2018/02/24 17:20:20 gobonniego starting. version: 1.0.4, threads: 8, disk space to use (MiB): 512
+2018/02/24 17:20:20 Number of CPU cores: 8
+2018/02/24 17:20:20 Total system RAM (MiB): 65536
+2018/02/24 17:20:20 Bonnie working directory: /var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/gobonniegoParent337382325
+2018/02/24 17:20:21 Written (MiB): 512
+2018/02/24 17:20:21 Written (MB): 536.870912
+2018/02/24 17:20:21 Duration (seconds): 1.029243
+Sequential Write MB/s: 521.62
+2018/02/24 17:20:21 Read (MiB): 512
+2018/02/24 17:20:21 Read (MB): 536.870912
+2018/02/24 17:20:21 Duration (seconds): 0.023219
+Sequential Read MB/s: 23121.95
+2018/02/24 17:20:37 operations 16927770
+2018/02/24 17:20:37 Duration (seconds): 15.940455
+IOPS: 1061938
 ```
 
 You can specify the placement of `gobonniego`'s test files. This is useful if the
@@ -112,7 +114,7 @@ gobonniego -version
 Yields:
 
 ```
-gobonniego version 1.0.3
+gobonniego version 1.0.4
 ```
 
 `gobonniego -h` will print out the available command line options and their
@@ -196,10 +198,9 @@ industry norm.
 
 ## Bugs
 
-If `gobonniego` fills up the filesystem, it will crash and you will need to find
-& delete the `gobonniego` files manually. Below is a sample `find` command to
-locate the `gobonniego` directory; delete that directory and everything
-underneath:
+If `gobonniego` crashes you may need to find and delete the `gobonniego` files
+manually. Below is a sample `find` command to locate the `gobonniego`
+directory; delete that directory and everything underneath:
 
 ```
 find / -name gobonniegoParent\*
