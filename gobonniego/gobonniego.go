@@ -55,9 +55,9 @@ func main() {
 		log.Printf("Bonnie working directory: %s", bonnieParentDir)
 	}
 
-	bm.CreateRandomBlock()
+	check(bm.CreateRandomBlock())
 
-	bm.RunSequentialWriteTest()
+	check(bm.RunSequentialWriteTest())
 	if verbose {
 		log.Printf("Written (MiB): %d\n", bm.Result.WrittenBytes>>20)
 		log.Printf("Written (MB): %f\n", float64(bm.Result.WrittenBytes)/1000000)
@@ -66,7 +66,7 @@ func main() {
 	fmt.Printf("Sequential Write MB/s: %0.2f\n",
 		float64(bm.Result.WrittenBytes)/float64(bm.Result.WrittenDuration.Seconds())/1000000)
 
-	bm.RunSequentialReadTest()
+	check(bm.RunSequentialReadTest())
 	if verbose {
 		log.Printf("Read (MiB): %d\n", bm.Result.ReadBytes>>20)
 		log.Printf("Read (MB): %f\n", float64(bm.Result.ReadBytes)/1000000)
@@ -75,7 +75,7 @@ func main() {
 	fmt.Printf("Sequential Read MB/s: %0.2f\n",
 		float64(bm.Result.ReadBytes)/float64(bm.Result.ReadDuration.Seconds())/1000000)
 
-	bm.RunIOPSTest()
+	check(bm.RunIOPSTest())
 	if verbose {
 		log.Printf("operations %d\n", bm.Result.IOPSOperations)
 		log.Printf("Duration (seconds): %f\n", bm.Result.IOPSDuration.Seconds())
