@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/cunnie/gobonniego/bench"
@@ -13,7 +14,7 @@ import (
 )
 
 func main() {
-	var verbose, version bool
+	var jsonOut, verbose, version bool
 	var err error
 	var numberOfRuns int
 
@@ -30,6 +31,8 @@ func main() {
 		"Verbose. Will print to stderr diagnostic information such as the amount of RAM, number of cores, etc.")
 	flag.BoolVar(&version, "version", false,
 		"Version. Will print the current version of gobonniego and then exit")
+	flag.BoolVar(&jsonOut, "json", false,
+		"Version. Will print JSON-formatted results to stdout. Does not affect diagnostics to stderr")
 	flag.IntVar(&numberOfRuns, "runs", 1,
 		"The number of test runs")
 	flag.IntVar(&bm.NumReadersWriters, "threads", runtime.NumCPU(),
@@ -65,8 +68,10 @@ func main() {
 			log.Printf("Written (MB): %f\n", float64(bm.Result[i].WrittenBytes)/1000000)
 			log.Printf("Duration (seconds): %f\n", bm.Result[i].WrittenDuration.Seconds())
 		}
-		fmt.Printf("Sequential Write MB/s: %0.2f\n",
-			float64(bm.Result[i].WrittenBytes)/float64(bm.Result[i].WrittenDuration.Seconds())/1000000)
+		if !jsonOut {
+			fmt.Printf("Sequential Write MB/s: %0.2f\n",
+				float64(bm.Result[i].WrittenBytes)/float64(bm.Result[i].WrittenDuration.Seconds())/1000000)
+		}
 
 		check(bm.RunSequentialReadTest())
 		if verbose {
@@ -74,16 +79,23 @@ func main() {
 			log.Printf("Read (MB): %f\n", float64(bm.Result[i].ReadBytes)/1000000)
 			log.Printf("Duration (seconds): %f\n", bm.Result[i].ReadDuration.Seconds())
 		}
-		fmt.Printf("Sequential Read MB/s: %0.2f\n",
-			float64(bm.Result[i].ReadBytes)/float64(bm.Result[i].ReadDuration.Seconds())/1000000)
+		if !jsonOut {
+			fmt.Printf("Sequential Read MB/s: %0.2f\n",
+				float64(bm.Result[i].ReadBytes)/float64(bm.Result[i].ReadDuration.Seconds())/1000000)
+		}
 
 		check(bm.RunIOPSTest())
 		if verbose {
 			log.Printf("operations %d\n", bm.Result[i].IOPSOperations)
 			log.Printf("Duration (seconds): %f\n", bm.Result[i].IOPSDuration.Seconds())
 		}
-		fmt.Printf("IOPS: %0.0f\n",
-			float64(bm.Result[i].IOPSOperations)/float64(bm.Result[i].IOPSDuration.Seconds()))
+		if !jsonOut {
+			fmt.Printf("IOPS: %0.0f\n",
+				float64(bm.Result[i].IOPSOperations)/float64(bm.Result[i].IOPSDuration.Seconds()))
+		}
+	}
+	if jsonOut {
+		json.NewEncoder(os.Stdout).Encode(bm)
 	}
 }
 
