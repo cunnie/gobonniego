@@ -12,8 +12,6 @@ import (
 	"runtime"
 )
 
-const Version = "1.0.4"
-
 func main() {
 	var verbose, version bool
 	var err error
@@ -43,7 +41,7 @@ func main() {
 	flag.Parse()
 
 	if version {
-		fmt.Printf("gobonniego version %s\n", Version)
+		fmt.Printf("gobonniego version %s\n", bm.Version())
 		os.Exit(0)
 	}
 
@@ -51,7 +49,7 @@ func main() {
 	defer os.RemoveAll(bm.BonnieDir)
 
 	log.Printf("gobonniego starting. version: %s, threads: %d, disk space to use (MiB): %d",
-		Version, bm.NumReadersWriters, int(bm.AggregateTestFilesSizeInGiB*(1<<10)))
+		bm.Version(), bm.NumReadersWriters, int(bm.AggregateTestFilesSizeInGiB*(1<<10)))
 	if verbose {
 		log.Printf("Number of CPU cores: %d", runtime.NumCPU())
 		log.Printf("Total system RAM (MiB): %d", bm.PhysicalMemory>>20)

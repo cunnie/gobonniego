@@ -12,8 +12,10 @@ import (
 	"time"
 )
 
+const Version = "1.0.4"
 const Blocksize = 0x1 << 16 // 65,536 bytes, 2^16 bytes
 
+// bench.Mark{} -- haha! Get it? "benchmark"!
 type Mark struct {
 	BonnieDir                   string
 	AggregateTestFilesSizeInGiB float64
@@ -36,6 +38,10 @@ type Result struct {
 type ThreadResult struct {
 	Result int // bytes written, bytes read, or number of I/O operations
 	Error  error
+}
+
+func (bm *Mark) Version() string {
+	return Version
 }
 
 // the Sequential Write test must be called before the other two tests, for it creates the files
