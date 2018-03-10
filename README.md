@@ -20,7 +20,7 @@ following example, we are logged into a Linux box and we download and run the
 Linux binary:
 
 ```
-curl -o gobonniego -L https://github.com/cunnie/gobonniego/releases/download/1.0.4/gobonniego-linux-amd64
+curl -o gobonniego -L https://github.com/cunnie/gobonniego/releases/download/1.0.5/gobonniego-linux-amd64
 chmod +x gobonniego
 ./gobonniego
 ```
@@ -44,7 +44,7 @@ gobonniego
 Typical output:
 
 ```
-2018/02/19 12:03:16 gobonniego starting. version: 1.0.4, threads: 8, disk space to use (MiB): 3984
+2018/02/19 12:03:16 gobonniego starting. version: 1.0.5, threads: 8, disk space to use (MiB): 3984
 Sequential Write MB/s: 748.22
 Sequential Read MB/s: 1025.19
 IOPS: 23832
@@ -60,7 +60,7 @@ gobonniego -v
 Yields:
 
 ```
-2018/02/24 17:20:20 gobonniego starting. version: 1.0.4, threads: 8, disk space to use (MiB): 512
+2018/02/24 17:20:20 gobonniego starting. version: 1.0.5, threads: 8, disk space to use (MiB): 512
 2018/02/24 17:20:20 Number of CPU cores: 8
 2018/02/24 17:20:20 Total system RAM (MiB): 65536
 2018/02/24 17:20:20 Bonnie working directory: /var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/gobonniegoParent337382325
@@ -117,7 +117,7 @@ Yields:
 
 ```json
 {
-  "version": "1.0.4",
+  "version": "1.0.5",
   "gobonniego_directory": "/var/folders/zp/vmj1nyzj6p567k5syt3hvq3h0000gn/T/gobonniegoParent983654097/gobonniego",
   "disk_space_used_gib": 0.5,
   "num_readers_and_writers": 4,
@@ -166,7 +166,7 @@ gobonniego -version
 Yields:
 
 ```
-gobonniego version 1.0.4
+gobonniego version 1.0.5
 ```
 
 `gobonniego -h` will print out the available command line options and their
