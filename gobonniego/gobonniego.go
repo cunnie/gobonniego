@@ -64,34 +64,34 @@ func main() {
 	for i := 0; i < numberOfRuns; i++ {
 		check(bm.RunSequentialWriteTest())
 		if verbose {
-			log.Printf("Written (MiB): %d\n", bm.Result[i].WrittenBytes>>20)
-			log.Printf("Written (MB): %f\n", float64(bm.Result[i].WrittenBytes)/1000000)
-			log.Printf("Duration (seconds): %f\n", bm.Result[i].WrittenDuration.Seconds())
+			log.Printf("Written (MiB): %d\n", bm.Results[i].WrittenBytes>>20)
+			log.Printf("Written (MB): %f\n", float64(bm.Results[i].WrittenBytes)/1000000)
+			log.Printf("Duration (seconds): %f\n", bm.Results[i].WrittenDuration.Seconds())
 		}
 		if !jsonOut {
 			fmt.Printf("Sequential Write MB/s: %0.2f\n",
-				float64(bm.Result[i].WrittenBytes)/float64(bm.Result[i].WrittenDuration.Seconds())/1000000)
+				float64(bm.Results[i].WrittenBytes)/float64(bm.Results[i].WrittenDuration.Seconds())/1000000)
 		}
 
 		check(bm.RunSequentialReadTest())
 		if verbose {
-			log.Printf("Read (MiB): %d\n", bm.Result[i].ReadBytes>>20)
-			log.Printf("Read (MB): %f\n", float64(bm.Result[i].ReadBytes)/1000000)
-			log.Printf("Duration (seconds): %f\n", bm.Result[i].ReadDuration.Seconds())
+			log.Printf("Read (MiB): %d\n", bm.Results[i].ReadBytes>>20)
+			log.Printf("Read (MB): %f\n", float64(bm.Results[i].ReadBytes)/1000000)
+			log.Printf("Duration (seconds): %f\n", bm.Results[i].ReadDuration.Seconds())
 		}
 		if !jsonOut {
 			fmt.Printf("Sequential Read MB/s: %0.2f\n",
-				float64(bm.Result[i].ReadBytes)/float64(bm.Result[i].ReadDuration.Seconds())/1000000)
+				float64(bm.Results[i].ReadBytes)/float64(bm.Results[i].ReadDuration.Seconds())/1000000)
 		}
 
 		check(bm.RunIOPSTest())
 		if verbose {
-			log.Printf("operations %d\n", bm.Result[i].IOPSOperations)
-			log.Printf("Duration (seconds): %f\n", bm.Result[i].IOPSDuration.Seconds())
+			log.Printf("operations %d\n", bm.Results[i].IOPSOperations)
+			log.Printf("Duration (seconds): %f\n", bm.Results[i].IOPSDuration.Seconds())
 		}
 		if !jsonOut {
 			fmt.Printf("IOPS: %0.0f\n",
-				float64(bm.Result[i].IOPSOperations)/float64(bm.Result[i].IOPSDuration.Seconds()))
+				float64(bm.Results[i].IOPSOperations)/float64(bm.Results[i].IOPSDuration.Seconds()))
 		}
 	}
 	if jsonOut {

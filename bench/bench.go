@@ -17,22 +17,22 @@ const Blocksize = 0x1 << 16 // 65,536 bytes, 2^16 bytes
 
 // bench.Mark{} -- haha! Get it? "benchmark"!
 type Mark struct {
-	BonnieDir                   string
-	AggregateTestFilesSizeInGiB float64
-	NumReadersWriters           int
-	PhysicalMemory              uint64
-	Result                      []Result
-	fileSize                    int
+	BonnieDir                   string   `json:"gobonniego_directory"`
+	AggregateTestFilesSizeInGiB float64  `json:"disk_space_used_gib"`
+	NumReadersWriters           int      `json:"num_readers_and_writers"`
+	PhysicalMemory              uint64   `json:"physical_memory_bytes"`
+	Results                     []Result `json:"results"`
+	fileSize                    int      `json:"file_size_bytes"`
 	randomBlock                 []byte
 }
 
 type Result struct {
-	WrittenBytes    int
-	WrittenDuration time.Duration
-	ReadBytes       int
-	ReadDuration    time.Duration
-	IOPSOperations  int
-	IOPSDuration    time.Duration
+	WrittenBytes    int           `json:"write_bytes"`
+	WrittenDuration time.Duration `json:"write_nanoseconds"`
+	ReadBytes       int           `json:"read_bytes"`
+	ReadDuration    time.Duration `json:"read_nanoseconds"`
+	IOPSOperations  int           `json:"io_operations"`
+	IOPSDuration    time.Duration `json:"io_nanoseconds"`
 }
 
 type ThreadResult struct {
@@ -56,8 +56,8 @@ func (bm *Mark) RunSequentialWriteTest() error {
 		}
 	}
 
-	bm.Result = append(bm.Result, Result{}) // store new result
-	newResult := &bm.Result[len(bm.Result)-1]
+	bm.Results = append(bm.Results, Result{}) // store new result
+	newResult := &bm.Results[len(bm.Results)-1]
 
 	bytesWritten := make(chan ThreadResult)
 	start := time.Now()
@@ -81,7 +81,7 @@ func (bm *Mark) RunSequentialWriteTest() error {
 // ReadTest must be called before IOPSTest otherwise
 // ReadTest will mistake IOPSTest's random writes for file corruption
 func (bm *Mark) RunSequentialReadTest() error {
-	newResult := &bm.Result[len(bm.Result)-1]
+	newResult := &bm.Results[len(bm.Results)-1]
 
 	bytesRead := make(chan ThreadResult)
 	start := time.Now()
@@ -103,7 +103,7 @@ func (bm *Mark) RunSequentialReadTest() error {
 }
 
 func (bm *Mark) RunIOPSTest() error {
-	newResult := &bm.Result[len(bm.Result)-1]
+	newResult := &bm.Results[len(bm.Results)-1]
 
 	opsPerformed := make(chan ThreadResult)
 	start := time.Now()
