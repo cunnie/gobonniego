@@ -3,6 +3,7 @@ package bench
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -122,6 +123,41 @@ func (bm *Mark) RunIOPSTest() error {
 
 	newResult.IOPSDuration = time.Now().Sub(start)
 	return nil
+}
+
+// Thanks Choly! http://choly.ca/post/go-json-marshalling/
+func (bm Mark) MarshalJSON() ([]byte, error) {
+	type Alias Mark
+	return json.Marshal(&struct {
+		Version string `json:"version"`
+		Alias
+	}{
+		Version: Version,
+		Alias:   Alias(bm),
+	})
+}
+
+func (r Result) MarshalJSON() ([]byte, error) {
+	type Alias Result
+	return json.Marshal(&struct {
+		WriteMBps float64 `json:"write_megabytes_per_second"`
+		ReadMBps  float64 `json:"read_megabytes_per_second"`
+		IOPS      float64 `json:"iops"`
+		Alias
+	}{
+		WriteMBps: MegaBytesPerSecond(r.WrittenBytes, r.WrittenDuration),
+		ReadMBps:  MegaBytesPerSecond(r.ReadBytes, r.ReadDuration),
+		IOPS:      IOPS(r.IOPSOperations, r.IOPSDuration),
+		Alias:     Alias(r),
+	})
+}
+
+func MegaBytesPerSecond(bytes int, duration time.Duration) float64 {
+	return float64(bytes) / float64(duration.Seconds()) / 1000000
+}
+
+func IOPS(operations int, duration time.Duration) float64 {
+	return float64(operations) / float64(duration.Seconds())
 }
 
 // calling program should `defer os.RemoveAll(bm.BonnieDir)` to clean up after run

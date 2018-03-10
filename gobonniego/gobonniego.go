@@ -70,7 +70,7 @@ func main() {
 		}
 		if !jsonOut {
 			fmt.Printf("Sequential Write MB/s: %0.2f\n",
-				float64(bm.Results[i].WrittenBytes)/float64(bm.Results[i].WrittenDuration.Seconds())/1000000)
+				bench.MegaBytesPerSecond(bm.Results[i].WrittenBytes, bm.Results[i].WrittenDuration))
 		}
 
 		check(bm.RunSequentialReadTest())
@@ -81,7 +81,7 @@ func main() {
 		}
 		if !jsonOut {
 			fmt.Printf("Sequential Read MB/s: %0.2f\n",
-				float64(bm.Results[i].ReadBytes)/float64(bm.Results[i].ReadDuration.Seconds())/1000000)
+				bench.MegaBytesPerSecond(bm.Results[i].ReadBytes, bm.Results[i].ReadDuration))
 		}
 
 		check(bm.RunIOPSTest())
@@ -91,7 +91,7 @@ func main() {
 		}
 		if !jsonOut {
 			fmt.Printf("IOPS: %0.0f\n",
-				float64(bm.Results[i].IOPSOperations)/float64(bm.Results[i].IOPSDuration.Seconds()))
+				bench.IOPS(bm.Results[i].IOPSOperations, bm.Results[i].IOPSDuration))
 		}
 	}
 	if jsonOut {
