@@ -77,24 +77,25 @@ Sequential Read MB/s: 23121.95
 IOPS: 1061938
 ```
 
-You can specify the number of test runs. This is useful to smooth drive
-performance volatility.
+You may specify the number of test runs. This is useful when gathering a large
+sample set.
 
 ```
 gobonniego -v -runs 2
 ```
 
-You can specify the placement of `gobonniego`'s test files. This is useful if the
-default filesystem is too small or if you want to test a specific filesystem/disk.
-`gobonniego` will clean up after itself, and will not delete the directory it's
-told to run in (you can safely specify `/tmp` or `/` as the directory). Here
-are some examples:
+You may specify the placement of `gobonniego`'s test files. This is useful if
+the default filesystem is too small or if you want to test a specific
+filesystem/disk.  `gobonniego` will clean up after itself, and will not delete
+the directory it's told to run in (you can safely specify `/tmp` or `/` as the
+directory). Here are some examples:
 
 ```
 gobonniego -dir D:\
 gobonniego -dir /tmp
 gobonniego -dir /zfs/tank
 gobonniego -dir /Volumes/USB
+gobonniego -dir /var/vcap/store/
 ```
 
 You may specify the number of threads (Goroutines) to run with the `-threads`
@@ -104,12 +105,56 @@ flag. In this example, we spawn 8 threads:
 gobonniego -threads 8
 ```
 
+You may choose to have JSON-formatted output by specifying the `-json` flag. In
+the following example, we pass the JSON output to the popular
+[`jq`](https://stedolan.github.io/jq/) tool which prettifies the JSON output:
+
+```
+gobonniego -json | jq -r .
+```
+
+Yields:
+
+```json
+{
+  "version": "1.0.4",
+  "gobonniego_directory": "/var/folders/zp/vmj1nyzj6p567k5syt3hvq3h0000gn/T/gobonniegoParent983654097/gobonniego",
+  "disk_space_used_gib": 0.5,
+  "num_readers_and_writers": 4,
+  "physical_memory_bytes": 17179869184,
+  "iops_duration_seconds": 0.5,
+  "results": [
+    {
+      "write_megabytes_per_second": 1608.7642096164034,
+      "read_megabytes_per_second": 11717.751585397944,
+      "iops": 307918.5948218495,
+      "write_bytes": 536870912,
+      "write_nanoseconds": 333716345,
+      "read_bytes": 536870912,
+      "read_nanoseconds": 45816888,
+      "io_operations": 222180,
+      "io_nanoseconds": 721554345
+    }
+  ]
+}
+```
+
+
 You may specify the amount of disk space `gobonniego` should use with the `-size` flag
 which takes an integer argument (in GiB). This can be used to iterate rapidly while testing.
 For example, to constrain `gobonniego` to use  0.5 GiB of disk space, type the following:
 
 ```
 gobonniego -size 0.5
+```
+
+You may specify the duration of the IOPS test. By default it runs for 15
+seconds, but this can be overridden in order to iterate rapidly while testing.
+For example, to trim the duration of the IOPS test to 1/2 second, type the
+following:
+
+```
+gobonniego --iops-duration=0.5
 ```
 
 `-version` will display the current version of `gobonniego`:
@@ -130,11 +175,17 @@ current default values:
 ```
 Usage of ./gobonniego:
   -dir string
-        The directory in which gobonniego places its temporary files, should have at least '-size' space available (default "/tmp/gobonniegoParent068579451")
+        The directory in which gobonniego places its temporary files, should have at least '-size' space available (default "/var/folders/zp/vmj1nyzj6p567k5syt3hvq3h0000gn/T/gobonniegoParent120217156")
+  -iops-duration float
+        The duration in seconds to run the IOPS benchmark, set to 0.5 for quick feedback during development (default 15)
+  -json
+        Version. Will print JSON-formatted results to stdout. Does not affect diagnostics to stderr
+  -runs int
+        The number of test runs (default 1)
   -size float
-        The amount of disk space to use (in GiB), defaults to twice the physical RAM (default 3.890625)
+        The amount of disk space to use (in GiB), defaults to twice the physical RAM (default 32)
   -threads int
-        The number of concurrent readers/writers, defaults to the number of CPU cores (default 8)
+        The number of concurrent readers/writers, defaults to the number of CPU cores (default 4)
   -v    Verbose. Will print to stderr diagnostic information such as the amount of RAM, number of cores, etc.
   -version
         Version. Will print the current version of gobonniego and then exit

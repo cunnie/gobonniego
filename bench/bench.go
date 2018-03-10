@@ -22,6 +22,7 @@ type Mark struct {
 	AggregateTestFilesSizeInGiB float64  `json:"disk_space_used_gib"`
 	NumReadersWriters           int      `json:"num_readers_and_writers"`
 	PhysicalMemory              uint64   `json:"physical_memory_bytes"`
+	IOPSDuration                float64  `json:"iops_duration_seconds"`
 	Results                     []Result `json:"results"`
 	fileSize                    int      `json:"file_size_bytes"`
 	randomBlock                 []byte
@@ -303,7 +304,7 @@ func (bm *Mark) singleThreadIOPSTest(filename string, numOpsChannel chan<- Threa
 	checksum := make([]byte, diskBlockSize)
 
 	start := time.Now()
-	for i := 0; time.Now().Sub(start).Seconds() < 15.0; i++ { // run for 15 seconds then blow this taco stand
+	for i := 0; time.Now().Sub(start).Seconds() < bm.IOPSDuration; i++ { // run for xx seconds then blow this taco stand
 		f.Seek(rand.Int63n(fileSizeLessOneDiskBlock), 0)
 		// TPC-E has a reads:writes ratio of 9.7:1  http://www.cs.cmu.edu/~chensm/papers/TPCE-sigmod-record10.pdf
 		// we round to 10:1
