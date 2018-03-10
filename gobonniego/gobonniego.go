@@ -17,6 +17,7 @@ const Version = "1.0.4"
 func main() {
 	var verbose, version bool
 	var err error
+	var numberOfRuns int
 
 	bm := bench.Mark{}
 
@@ -31,6 +32,8 @@ func main() {
 		"Verbose. Will print to stderr diagnostic information such as the amount of RAM, number of cores, etc.")
 	flag.BoolVar(&version, "version", false,
 		"Version. Will print the current version of gobonniego and then exit")
+	flag.IntVar(&numberOfRuns, "runs", 1,
+		"The number of test runs")
 	flag.IntVar(&bm.NumReadersWriters, "threads", runtime.NumCPU(),
 		"The number of concurrent readers/writers, defaults to the number of CPU cores")
 	flag.Float64Var(&bm.AggregateTestFilesSizeInGiB, "size", math.Floor(float64(2*int(bm.PhysicalMemory>>20)))/1024,
@@ -57,31 +60,33 @@ func main() {
 
 	check(bm.CreateRandomBlock())
 
-	check(bm.RunSequentialWriteTest())
-	if verbose {
-		log.Printf("Written (MiB): %d\n", bm.Result.WrittenBytes>>20)
-		log.Printf("Written (MB): %f\n", float64(bm.Result.WrittenBytes)/1000000)
-		log.Printf("Duration (seconds): %f\n", bm.Result.WrittenDuration.Seconds())
-	}
-	fmt.Printf("Sequential Write MB/s: %0.2f\n",
-		float64(bm.Result.WrittenBytes)/float64(bm.Result.WrittenDuration.Seconds())/1000000)
+	for ; numberOfRuns > 0; numberOfRuns-- {
+		check(bm.RunSequentialWriteTest())
+		if verbose {
+			log.Printf("Written (MiB): %d\n", bm.Result.WrittenBytes>>20)
+			log.Printf("Written (MB): %f\n", float64(bm.Result.WrittenBytes)/1000000)
+			log.Printf("Duration (seconds): %f\n", bm.Result.WrittenDuration.Seconds())
+		}
+		fmt.Printf("Sequential Write MB/s: %0.2f\n",
+			float64(bm.Result.WrittenBytes)/float64(bm.Result.WrittenDuration.Seconds())/1000000)
 
-	check(bm.RunSequentialReadTest())
-	if verbose {
-		log.Printf("Read (MiB): %d\n", bm.Result.ReadBytes>>20)
-		log.Printf("Read (MB): %f\n", float64(bm.Result.ReadBytes)/1000000)
-		log.Printf("Duration (seconds): %f\n", bm.Result.ReadDuration.Seconds())
-	}
-	fmt.Printf("Sequential Read MB/s: %0.2f\n",
-		float64(bm.Result.ReadBytes)/float64(bm.Result.ReadDuration.Seconds())/1000000)
+		check(bm.RunSequentialReadTest())
+		if verbose {
+			log.Printf("Read (MiB): %d\n", bm.Result.ReadBytes>>20)
+			log.Printf("Read (MB): %f\n", float64(bm.Result.ReadBytes)/1000000)
+			log.Printf("Duration (seconds): %f\n", bm.Result.ReadDuration.Seconds())
+		}
+		fmt.Printf("Sequential Read MB/s: %0.2f\n",
+			float64(bm.Result.ReadBytes)/float64(bm.Result.ReadDuration.Seconds())/1000000)
 
-	check(bm.RunIOPSTest())
-	if verbose {
-		log.Printf("operations %d\n", bm.Result.IOPSOperations)
-		log.Printf("Duration (seconds): %f\n", bm.Result.IOPSDuration.Seconds())
+		check(bm.RunIOPSTest())
+		if verbose {
+			log.Printf("operations %d\n", bm.Result.IOPSOperations)
+			log.Printf("Duration (seconds): %f\n", bm.Result.IOPSDuration.Seconds())
+		}
+		fmt.Printf("IOPS: %0.0f\n",
+			float64(bm.Result.IOPSOperations)/float64(bm.Result.IOPSDuration.Seconds()))
 	}
-	fmt.Printf("IOPS: %0.0f\n",
-		float64(bm.Result.IOPSOperations)/float64(bm.Result.IOPSDuration.Seconds()))
 }
 
 func check(e error) {

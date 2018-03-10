@@ -42,11 +42,19 @@ type ThreadResult struct {
 func (bm *Mark) RunSequentialWriteTest() error {
 	bm.fileSize = (int(bm.AggregateTestFilesSizeInGiB*(1<<10)) << 20) / bm.NumReadersWriters
 
+	// Delete pre-existing files, should only be necessary when there are two or more test runs
+	for i := 0; i < bm.NumReadersWriters; i++ {
+		err := os.RemoveAll(path.Join(bm.BonnieDir, fmt.Sprintf("bonnie.%d", i)))
+		if err != nil {
+			return err
+		}
+	}
+
 	bytesWritten := make(chan ThreadResult)
 	start := time.Now()
 
 	for i := 0; i < bm.NumReadersWriters; i++ {
-		go bm.singleThreadWriteTest(path.Join(fmt.Sprintf("bonnie.%d", i)), bytesWritten)
+		go bm.singleThreadWriteTest(path.Join(bm.BonnieDir, fmt.Sprintf("bonnie.%d", i)), bytesWritten)
 	}
 	bm.Result.WrittenBytes = 0
 	for i := 0; i < bm.NumReadersWriters; i++ {
@@ -61,12 +69,14 @@ func (bm *Mark) RunSequentialWriteTest() error {
 	return nil
 }
 
+// ReadTest must be called before IOPSTest otherwise
+// ReadTest will assume that the IOPSTest's random writes are file corruption
 func (bm *Mark) RunSequentialReadTest() error {
 	bytesRead := make(chan ThreadResult)
 	start := time.Now()
 
 	for i := 0; i < bm.NumReadersWriters; i++ {
-		go bm.singleThreadReadTest(path.Join(fmt.Sprintf("bonnie.%d", i)), bytesRead)
+		go bm.singleThreadReadTest(path.Join(bm.BonnieDir, fmt.Sprintf("bonnie.%d", i)), bytesRead)
 	}
 	bm.Result.ReadBytes = 0
 	for i := 0; i < bm.NumReadersWriters; i++ {
@@ -86,7 +96,7 @@ func (bm *Mark) RunIOPSTest() error {
 	start := time.Now()
 
 	for i := 0; i < bm.NumReadersWriters; i++ {
-		go bm.singleThreadIOPSTest(path.Join(fmt.Sprintf("bonnie.%d", i)), opsPerformed)
+		go bm.singleThreadIOPSTest(path.Join(bm.BonnieDir, fmt.Sprintf("bonnie.%d", i)), opsPerformed)
 	}
 	bm.Result.IOPSOperations = 0
 	for i := 0; i < bm.NumReadersWriters; i++ {
@@ -137,7 +147,7 @@ func (bm *Mark) CreateRandomBlock() error {
 }
 
 func (bm *Mark) singleThreadWriteTest(filename string, bytesWrittenChannel chan<- ThreadResult) {
-	f, err := os.Create(path.Join(bm.BonnieDir, filename))
+	f, err := os.Create(filename)
 	if err != nil {
 		bytesWrittenChannel <- ThreadResult{
 			Result: 0, Error: err,
@@ -178,7 +188,7 @@ func (bm *Mark) singleThreadWriteTest(filename string, bytesWrittenChannel chan<
 }
 
 func (bm *Mark) singleThreadReadTest(filename string, bytesReadChannel chan<- ThreadResult) {
-	f, err := os.Open(path.Join(bm.BonnieDir, filename))
+	f, err := os.Open(filename)
 	if err != nil {
 		bytesReadChannel <- ThreadResult{
 			Result: 0, Error: err,
@@ -221,7 +231,7 @@ func (bm *Mark) singleThreadReadTest(filename string, bytesReadChannel chan<- Th
 
 func (bm *Mark) singleThreadIOPSTest(filename string, numOpsChannel chan<- ThreadResult) {
 	diskBlockSize := 0x1 << 9 // 512 bytes, nostalgia: in the olden (System V) days, disk blocks were 512 bytes
-	fileInfo, err := os.Stat(path.Join(bm.BonnieDir, filename))
+	fileInfo, err := os.Stat(filename)
 	if err != nil {
 		numOpsChannel <- ThreadResult{
 			Result: 0, Error: err,
@@ -231,7 +241,7 @@ func (bm *Mark) singleThreadIOPSTest(filename string, numOpsChannel chan<- Threa
 	fileSizeLessOneDiskBlock := fileInfo.Size() - int64(diskBlockSize) // give myself room to not read past EOF
 	numOperations := 0
 
-	f, err := os.OpenFile(path.Join(bm.BonnieDir, filename), os.O_RDWR, 0644)
+	f, err := os.OpenFile(filename, os.O_RDWR, 0644)
 	if err != nil {
 		numOpsChannel <- ThreadResult{
 			Result: 0, Error: err,

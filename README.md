@@ -77,6 +77,13 @@ Sequential Read MB/s: 23121.95
 IOPS: 1061938
 ```
 
+You can specify the number of test runs. This is useful to smooth drive
+performance volatility.
+
+```
+gobonniego -v -runs 2
+```
+
 You can specify the placement of `gobonniego`'s test files. This is useful if the
 default filesystem is too small or if you want to test a specific filesystem/disk.
 `gobonniego` will clean up after itself, and will not delete the directory it's
