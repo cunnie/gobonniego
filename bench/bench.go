@@ -19,7 +19,7 @@ type Mark struct {
 	AggregateTestFilesSizeInGiB float64
 	NumReadersWriters           int
 	PhysicalMemory              uint64
-	Result                      Result
+	Result                      []Result
 	fileSize                    int
 	randomBlock                 []byte
 }
@@ -50,64 +50,71 @@ func (bm *Mark) RunSequentialWriteTest() error {
 		}
 	}
 
+	bm.Result = append(bm.Result, Result{}) // store new result
+	newResult := &bm.Result[len(bm.Result)-1]
+
 	bytesWritten := make(chan ThreadResult)
 	start := time.Now()
 
 	for i := 0; i < bm.NumReadersWriters; i++ {
 		go bm.singleThreadWriteTest(path.Join(bm.BonnieDir, fmt.Sprintf("bonnie.%d", i)), bytesWritten)
 	}
-	bm.Result.WrittenBytes = 0
+	newResult.WrittenBytes = 0
 	for i := 0; i < bm.NumReadersWriters; i++ {
 		result := <-bytesWritten
 		if result.Error != nil {
 			return result.Error
 		}
-		bm.Result.WrittenBytes += result.Result
+		newResult.WrittenBytes += result.Result
 	}
 
-	bm.Result.WrittenDuration = time.Now().Sub(start)
+	newResult.WrittenDuration = time.Now().Sub(start)
 	return nil
 }
 
 // ReadTest must be called before IOPSTest otherwise
-// ReadTest will assume that the IOPSTest's random writes are file corruption
+// ReadTest will mistake IOPSTest's random writes for file corruption
 func (bm *Mark) RunSequentialReadTest() error {
+	newResult := &bm.Result[len(bm.Result)-1]
+
 	bytesRead := make(chan ThreadResult)
 	start := time.Now()
 
 	for i := 0; i < bm.NumReadersWriters; i++ {
 		go bm.singleThreadReadTest(path.Join(bm.BonnieDir, fmt.Sprintf("bonnie.%d", i)), bytesRead)
 	}
-	bm.Result.ReadBytes = 0
+	newResult.ReadBytes = 0
 	for i := 0; i < bm.NumReadersWriters; i++ {
 		result := <-bytesRead
 		if result.Error != nil {
 			return result.Error
 		}
-		bm.Result.ReadBytes += result.Result
+		newResult.ReadBytes += result.Result
 	}
 
-	bm.Result.ReadDuration = time.Now().Sub(start)
+	newResult.ReadDuration = time.Now().Sub(start)
 	return nil
 }
 
 func (bm *Mark) RunIOPSTest() error {
+	newResult := &bm.Result[len(bm.Result)-1]
+
 	opsPerformed := make(chan ThreadResult)
 	start := time.Now()
 
 	for i := 0; i < bm.NumReadersWriters; i++ {
 		go bm.singleThreadIOPSTest(path.Join(bm.BonnieDir, fmt.Sprintf("bonnie.%d", i)), opsPerformed)
 	}
-	bm.Result.IOPSOperations = 0
+	newResult.IOPSOperations = 0
 	for i := 0; i < bm.NumReadersWriters; i++ {
 		result := <-opsPerformed
 		if result.Error != nil {
 			return result.Error
 		}
-		bm.Result.IOPSOperations += result.Result
+		newResult.IOPSOperations += result.Result
 	}
 
-	bm.Result.IOPSDuration = time.Now().Sub(start)
+	newResult.IOPSDuration = time.Now().Sub(start)
 	return nil
 }
 
