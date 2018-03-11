@@ -1,6 +1,6 @@
-## Go Bonnie Go!
+## GoBonnieGo
 
-`gobonniego` is a _minimal_ Golang implementation of Tim Bray's
+GoBonnieGo is a _minimal_ Golang implementation of Tim Bray's
 [bonnie](https://code.google.com/p/bonnie-64/) (*bonnie* is
 written in C).
 
@@ -12,9 +12,9 @@ It presents three disk metrics:
 2. Sequential Read (higher is better)
 3. IOPS (I/O Operations per Second) (higher is better)
 
-## Getting `gobonniego`
+## Getting GoBonnieGo
 
-The easiest way to get `gobonniego` is to download the pre-built binaries in the
+The easiest way to get GoBonnieGo is to download the pre-built binaries in the
 [Releases](https://github.com/cunnie/gobonniego/releases/) section.  In the
 following example, we are logged into a Linux box and we download and run the
 Linux binary:
@@ -25,7 +25,7 @@ chmod +x gobonniego
 ./gobonniego
 ```
 
-Alternatively, you can run `gobonniego` from source if you're a Golang developer:
+Alternatively, you can run GoBonnieGo from source if you're a Golang developer:
 
 ```
 go get github.com/cunnie/gobonniego
@@ -35,7 +35,7 @@ go run gobonniego/gobonniego.go  # "Go Bonnie Go, Go"!
 
 ## Examples
 
-`gobonniego` can be invoked without parameters; its defaults are reasonable.
+GoBonnieGo can be invoked without parameters; its defaults are reasonable.
 
 ```
 gobonniego
@@ -84,9 +84,9 @@ sample set.
 gobonniego -v -runs 2
 ```
 
-You may specify the placement of `gobonniego`'s test files. This is useful if
+You may specify the placement of GoBonnieGo's test files. This is useful if
 the default filesystem is too small or if you want to test a specific
-filesystem/disk.  `gobonniego` will clean up after itself, and will not delete
+filesystem/disk.  GoBonnieGo will clean up after itself, and will not delete
 the directory it's told to run in (you can safely specify `/tmp` or `/` as the
 directory). Here are some examples:
 
@@ -140,9 +140,9 @@ Yields:
 ```
 
 
-You may specify the amount of disk space `gobonniego` should use with the `-size` flag
+You may specify the amount of disk space GoBonnieGo should use with the `-size` flag
 which takes an integer argument (in GiB). This can be used to iterate rapidly while testing.
-For example, to constrain `gobonniego` to use  0.5 GiB of disk space, type the following:
+For example, to constrain GoBonnieGo to use  0.5 GiB of disk space, type the following:
 
 ```
 gobonniego -size 0.5
@@ -157,7 +157,7 @@ following:
 gobonniego --iops-duration=0.5
 ```
 
-`-version` will display the current version of `gobonniego`:
+`-version` will display the current version of GoBonnieGo:
 
 ```
 gobonniego -version
@@ -193,17 +193,17 @@ Usage of ./gobonniego:
 
 ## Technical Notes
 
-`gobonniego` detects the number of CPU cores and the amount of RAM.
+GoBonnieGo detects the number of CPU cores and the amount of RAM.
 
 The number of cores may not match the number of physical cores. For example, an
 Intel core i5 with two physical cores and hyperthreading is detected as 4
 cores.
 
-`gobonniego` spawns one thread for each core unless overridden by the `-threads`
+GoBonnieGo spawns one thread for each core unless overridden by the `-threads`
 flag.
 
-`gobonniego` writes twice the amount of RAM unless overridden with the `-size`
-flag.  For example, on a system with 16 GiB of RAM, `gobonniego` would write 32
+GoBonnieGo writes twice the amount of RAM unless overridden with the `-size`
+flag.  For example, on a system with 16 GiB of RAM, GoBonnieGo would write 32
 GiB of data. This is to reduce the effect of the [buffer
 cache](http://www.tldp.org/LDP/sag/html/buffer-cache.html), which may give
 misleadingly good results.
@@ -212,33 +212,33 @@ If the sequential read performance is several multiples of the sequential write
 performance, it's likely that the buffer cache has skewed the results.
 
 The buffer cache also skews the results of the IOPS metric — the number
-reported by `gobonniego` is often much too high, and a reasonable rule of thumb
-would be to **halve the IOPS value reported by `gobonniego`** (e.g. 200k IOPS
-would become 100k IOPS) (assumptions: `gobonniego` dataset size is twice RAM,
+reported by GoBonnieGo is often much too high, and a reasonable rule of thumb
+would be to **halve the IOPS value reported by GoBonnieGo** (e.g. 200k IOPS
+would become 100k IOPS) (assumptions: GoBonnieGo dataset size is twice RAM,
 that half the dataset is in the buffer cache, that any given operation has a
 50% chance of hitting the cache instead of the disk, that the operation is a
 read (true 90% of the time), and that any operation hitting the buffer cache
 returns instantaneously (takes zero seconds to process)).
 
-`gobonniego` divides the total amount to write by the number of threads. For
+GoBonnieGo divides the total amount to write by the number of threads. For
 example, a 4-core system with 8 GiB of RAM would have four threads each of
 which would concurrently write 4 GiB of data for a total of 16 GiB.
 
-`gobonniego` writes with buffered I/O; however, it waits for
+GoBonnieGo writes with buffered I/O; however, it waits for
 [`bufio.Flush()`](https://golang.org/pkg/bufio/#Writer.Flush) to complete
 before recording the duration.
 
-`gobonniego` creates a 64 kiB chunk of random data which it writes in
+GoBonnieGo creates a 64 kiB chunk of random data which it writes in
 succession to disk.  It's random in order to avoid inflating the results for
 filesystems which enable compression (e.g. ZFS). We are aware that we are
 unfairly handicapping filesystems which enable compression.
 
-`gobonniego` reads the files concurrently in 64 kiB chunks. Every 127 chunks it
+GoBonnieGo reads the files concurrently in 64 kiB chunks. Every 127 chunks it
 does a byte comparison against the original random data 64 kiB chunk to make
 sure there has been no corruption. This probably exacts a small penalty in read
 performance.
 
-For IOPS measurement, a `gobonniego` thread seeks to a random position in the
+For IOPS measurement, a GoBonnieGo thread seeks to a random position in the
 file and reads 512 bytes. This counts as a single operation. Every tenth seek
 instead of reading it will write 512 bytes of data. This also counts as an
 operation. The ratio of reads:writes is 10:1, in order to approximate the ratio
@@ -246,16 +246,16 @@ that the TPC-E benchmark uses
 (<http://www.cs.cmu.edu/~chensm/papers/TPCE-sigmod-record10.pdf>).
 
 The IOPS measurement cycle runs for approximately 15 seconds, at the end of
-which `gobonniego` tallies up the number of I/O operations and divides by the
+which GoBonnieGo tallies up the number of I/O operations and divides by the
 duration of the test.
 
-`gobonniego` uses
+GoBonnieGo uses
 [`ioutil.TempDir()`](https://golang.org/pkg/io/ioutil/#TempDir) to create the
 temporary directory in which to place its files, unless overridden by the
 `-dir` flag. On Linux systems this temporary directory is often `/tmp/`, on
 macOS systems, `/var/folders/...`.
 
-`gobonniego` measures bytes in [MiB](https://en.wikipedia.org/wiki/Mebibyte)
+GoBonnieGo measures bytes in [MiB](https://en.wikipedia.org/wiki/Mebibyte)
 and GiB:
 
 - 1 MiB == 2<sup>20</sup> bytes == 1,048,576 bytes
@@ -267,8 +267,8 @@ industry norm.
 
 ## Bugs
 
-If `gobonniego` crashes you may need to find and delete the `gobonniego` files
-manually. Below is a sample `find` command to locate the `gobonniego`
+If GoBonnieGo crashes you may need to find and delete the GoBonnieGo files
+manually. Below is a sample `find` command to locate the GoBonnieGo
 directory; delete that directory and everything underneath:
 
 ```
@@ -303,7 +303,7 @@ phrase, "Go Johnny go"
 
 ### Impetus
 
-The impetus for writing `gobonniego` is to provide concurrency.  During a
+The impetus for writing GoBonnieGo is to provide concurrency.  During a
 benchmark of a ZFS filesystem (using *bonnie++*), it became clear that a the
 single-threaded performance of *bonnie++* and not disk speed was the limiting
 factor.
