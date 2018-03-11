@@ -211,6 +211,15 @@ misleadingly good results.
 If the sequential read performance is several multiples of the sequential write
 performance, it's likely that the buffer cache has skewed the results.
 
+The buffer cache also skews the results of the IOPS metric — the number
+reported by `gobonniego` is often much too high, and a reasonable rule of thumb
+would be to **halve the IOPS value reported by `gobonniego`** (e.g. 200k IOPS
+would become 100k IOPS) (assumptions: `gobonniego` dataset size is twice RAM,
+that half the dataset is in the buffer cache, that any given operation has a
+50% chance of hitting the cache instead of the disk, that the operation is a
+read (true 90% of the time), and that any operation hitting the buffer cache
+returns instantaneously (takes zero seconds to process)).
+
 `gobonniego` divides the total amount to write by the number of threads. For
 example, a 4-core system with 8 GiB of RAM would have four threads each of
 which would concurrently write 4 GiB of data for a total of 16 GiB.
@@ -219,14 +228,15 @@ which would concurrently write 4 GiB of data for a total of 16 GiB.
 [`bufio.Flush()`](https://golang.org/pkg/bufio/#Writer.Flush) to complete
 before recording the duration.
 
-`gobonniego` creates a 64 kiB chunk of random data which it writes in succession
-to disk.  It's random in order to avoid inflating the results for filesystems
-which enable compression (e.g. ZFS).
+`gobonniego` creates a 64 kiB chunk of random data which it writes in
+succession to disk.  It's random in order to avoid inflating the results for
+filesystems which enable compression (e.g. ZFS). We are aware that we are
+unfairly handicapping filesystems which enable compression.
 
 `gobonniego` reads the files concurrently in 64 kiB chunks. Every 127 chunks it
 does a byte comparison against the original random data 64 kiB chunk to make
-sure there has been no corruption. This probably exacts a small penalty in
-read performance.
+sure there has been no corruption. This probably exacts a small penalty in read
+performance.
 
 For IOPS measurement, a `gobonniego` thread seeks to a random position in the
 file and reads 512 bytes. This counts as a single operation. Every tenth seek
@@ -245,7 +255,8 @@ temporary directory in which to place its files, unless overridden by the
 `-dir` flag. On Linux systems this temporary directory is often `/tmp/`, on
 macOS systems, `/var/folders/...`.
 
-`gobonniego` measures bytes in [MiB](https://en.wikipedia.org/wiki/Mebibyte) and GiB:
+`gobonniego` measures bytes in [MiB](https://en.wikipedia.org/wiki/Mebibyte)
+and GiB:
 
 - 1 MiB == 2<sup>20</sup> bytes == 1,048,576 bytes
 - 1 GiB == 2<sup>30</sup> bytes == 1,073,741,824 bytes
