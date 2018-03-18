@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/cunnie/gobonniego/mem"
 	"io"
 	"math/rand"
 	"os"
@@ -84,6 +85,7 @@ func (bm *Mark) RunSequentialWriteTest() error {
 // ReadTest will mistake IOPSTest's random writes for file corruption
 func (bm *Mark) RunSequentialReadTest() error {
 	newResult := &bm.Results[len(bm.Results)-1]
+	mem.ClearBufferCache() // ignore errors; if it works great, if it doesn't, too bad
 
 	bytesRead := make(chan ThreadResult)
 	start := time.Now()
@@ -106,6 +108,7 @@ func (bm *Mark) RunSequentialReadTest() error {
 
 func (bm *Mark) RunIOPSTest() error {
 	newResult := &bm.Results[len(bm.Results)-1]
+	mem.ClearBufferCache() // ignore errors; if it works great, if it doesn't, too bad
 
 	opsPerformed := make(chan ThreadResult)
 	start := time.Now()

@@ -148,7 +148,7 @@ For example, to constrain GoBonnieGo to use  0.5 GiB of disk space, type the fol
 gobonniego -size 0.5
 ```
 
-You may specify the duration of the IOPS test. By default it runs for 15
+You may specify the duration of the IOPS test. By default it runs for 5
 seconds, but this can be overridden in order to iterate rapidly while testing.
 For example, to trim the duration of the IOPS test to 1/2 second, type the
 following:
@@ -211,14 +211,24 @@ misleadingly good results.
 If the sequential read performance is several multiples of the sequential write
 performance, it's likely that the buffer cache has skewed the results.
 
-The buffer cache also skews the results of the IOPS metric — the number
-reported by GoBonnieGo is often much too high, and a reasonable rule of thumb
-would be to **halve the IOPS value reported by GoBonnieGo** (e.g. 200k IOPS
-would become 100k IOPS) (assumptions: GoBonnieGo dataset size is twice RAM,
-that half the dataset is in the buffer cache, that any given operation has a
-50% chance of hitting the cache instead of the disk, that the operation is a
-read (true 90% of the time), and that any operation hitting the buffer cache
-returns instantaneously (takes zero seconds to process)).
+The buffer cache also skews the results of the IOPS metric — the number reported
+by GoBonnieGo is often much too high, and a reasonable rule of thumb would be to
+**halve the IOPS value reported by GoBonnieGo** (e.g. 200k IOPS would become
+100k IOPS) (assumptions: GoBonnieGo dataset size is twice RAM, that half the
+dataset is in the buffer cache, that any given operation has a 50% chance of
+hitting the cache instead of the disk, that the operation is a read (true 90% of
+the time), and that any operation hitting the buffer cache returns
+instantaneously (takes zero seconds to process)).
+
+If run as root on Linux or macOS systems, GoBonnieGo will flush the buffer cache
+before running the read test or the IOPS test. It accomplishes this on linux by
+writing `3` to [`/proc/sys/vm/drop_caches`](https://linux-mm.org/Drop_Caches);
+on macOS, it runs the
+[`purge`](https://developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man8/purge.8.html)
+command. The results given by GoBonnieGo under these conditions will more
+closely reflect the performance of the underlying hardware (i.e. you should not
+halve the IOPS value), but there is always a risk when running commands as root.
+_Caveat Utor_.
 
 GoBonnieGo divides the total amount to write by the number of threads. For
 example, a 4-core system with 8 GiB of RAM would have four threads each of
@@ -272,7 +282,7 @@ manually. Below is a sample `find` command to locate the GoBonnieGo
 directory; delete that directory and everything underneath:
 
 ```
-find / -name gobonniegoParent\*
+find / -name gobonniegoParent\* -follow
 ```
 
 ### Acknowledgements

@@ -39,7 +39,7 @@ func main() {
 		"The number of concurrent readers/writers, defaults to the number of CPU cores")
 	flag.Float64Var(&bm.AggregateTestFilesSizeInGiB, "size", math.Floor(float64(2*int(bm.PhysicalMemory>>20)))/1024,
 		"The amount of disk space to use (in GiB), defaults to twice the physical RAM")
-	flag.Float64Var(&bm.IOPSDuration, "iops-duration", 15.0,
+	flag.Float64Var(&bm.IOPSDuration, "iops-duration", 5.0,
 		"The duration in seconds to run the IOPS benchmark, set to 0.5 for quick feedback during development")
 	flag.StringVar(&bonnieParentDir, "dir", bonnieParentDir,
 		"The directory in which gobonniego places its temporary files, should have at least '-size' space available")

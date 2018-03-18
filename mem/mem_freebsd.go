@@ -3,6 +3,8 @@ package mem
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
+	"runtime"
 	"syscall"
 	"unsafe"
 )
@@ -14,6 +16,10 @@ func Get() (uint64, error) {
 		return 0, err
 	}
 	return physMem, nil
+}
+
+func ClearBufferCache() error {
+	return errors.New("Can't clear buffer cache; OS is \"" + runtime.GOOS + "\", not \"linux\" or \"darwin\"")
 }
 
 // generic Sysctl buffer unmarshalling
