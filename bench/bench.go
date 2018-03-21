@@ -167,20 +167,23 @@ func IOPS(operations int, duration time.Duration) float64 {
 // calling program should `defer os.RemoveAll(bm.BonnieDir)` to clean up after run
 func (bm *Mark) SetBonnieDir(parentDir string) error {
 	// if bonnieParentDir exists, e.g. "/tmp", all is good, but if it doesn't, e.g. "/tmp/gobonniego_run_five", then create it
-	fileInfo, err := os.Stat(parentDir)
+	err := createDirIfNeeded(parentDir)
 	if err != nil {
-		err = os.Mkdir(parentDir, 0755)
+		return err
+	}
+	bm.BonnieDir = path.Join(parentDir, "gobonniego")
+	return createDirIfNeeded(bm.BonnieDir)
+}
+
+func createDirIfNeeded(dir string) error {
+	fileInfo, err := os.Stat(dir)
+	if err != nil {
+		err = os.Mkdir(dir, 0755)
 		if err != nil {
 			return err
 		}
-	}
-	if !fileInfo.IsDir() {
-		return errors.New(fmt.Sprintf("'%s' is not a directory!", parentDir))
-	}
-	bm.BonnieDir = path.Join(parentDir, "gobonniego")
-	err = os.Mkdir(bm.BonnieDir, 0755)
-	if err != nil {
-		return err
+	} else if !fileInfo.IsDir() {
+		return errors.New(fmt.Sprintf("'%s' is not a directory!", dir))
 	}
 	return nil
 }

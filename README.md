@@ -285,6 +285,8 @@ directory; delete that directory and everything underneath:
 find / -name gobonniegoParent\* -follow
 ```
 
+GoBonnieGo needs integration tests. Badly.
+
 ### Acknowledgements
 
 [Tim Bray](https://www.tbray.org/ongoing/) wrote the original `bonnie` which
