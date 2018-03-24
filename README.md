@@ -275,7 +275,14 @@ However, the output of the read and write metrics are in MB/s
 (Megabytes/second, i.e. 1,000,000 bytes per second) to conform with the
 industry norm.
 
+GoBonnieGo uses 64 kiB blocks for its read and write tests. For its IOPS
+test, it uses a 512-byte blocks: it seeks to a random location in the
+test file and either reads or writes 512 bytes.
+
 ## Bugs
+
+GoBonnieGo may have difficulty running on 32-bit systems; `int` and
+`int64` were used interchangeably in the code.
 
 If GoBonnieGo crashes you may need to find and delete the GoBonnieGo files
 manually. Below is a sample `find` command to locate the GoBonnieGo
