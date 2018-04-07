@@ -220,15 +220,16 @@ hitting the cache instead of the disk, that the operation is a read (true 90% of
 the time), and that any operation hitting the buffer cache returns
 instantaneously (takes zero seconds to process)).
 
-If run as root on Linux or macOS systems, GoBonnieGo will flush the buffer cache
-before running the read test or the IOPS test. It accomplishes this on linux by
-writing `3` to [`/proc/sys/vm/drop_caches`](https://linux-mm.org/Drop_Caches);
-on macOS, it runs the
+If run as root on Linux or macOS systems, GoBonnieGo will flush the buffer
+cache before running the read test or the IOPS test, and will also flush the
+buffer cache every three seconds. It accomplishes this on linux by writing `3`
+to [`/proc/sys/vm/drop_caches`](https://linux-mm.org/Drop_Caches); on macOS, it
+runs the
 [`purge`](https://developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man8/purge.8.html)
 command. The results given by GoBonnieGo under these conditions will more
 closely reflect the performance of the underlying hardware (i.e. you should not
-halve the IOPS value), but there is always a risk when running commands as root.
-_Caveat Utor_.
+halve the IOPS value), but there is always a risk when running commands as
+root.  _Caveat Utor_.
 
 GoBonnieGo divides the total amount to write by the number of threads. For
 example, a 4-core system with 8 GiB of RAM would have four threads each of

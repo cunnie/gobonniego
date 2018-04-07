@@ -164,6 +164,16 @@ func (r Result) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// the following should be run as a goroutine as part of the benchmark; clears the buffer cache every 3 seconds
+func ClearBufferCacheEveryThreeSeconds() error {
+	for ; ; <-time.After(3 * time.Second) {
+		err := mem.ClearBufferCache()
+		if err != nil {
+			return fmt.Errorf("Couldn't clear the buffer cache, bailing: %s", err)
+		}
+	}
+}
+
 func MegaBytesPerSecond(bytes int, duration time.Duration) float64 {
 	return float64(bytes) / float64(duration.Seconds()) / 1000000
 }

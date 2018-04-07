@@ -63,6 +63,7 @@ func main() {
 	}
 
 	check(bm.CreateRandomBlock())
+	go bench.ClearBufferCacheEveryThreeSeconds() // flush the Buffer Cache every 3 seconds
 
 	for i := 0; i < numberOfRuns; i++ {
 		check(bm.RunSequentialWriteTest())
