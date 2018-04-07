@@ -19,23 +19,25 @@ const Blocksize = 0x1 << 16 // 65,536 bytes, 2^16 bytes
 
 // bench.Mark{} -- haha! Get it? "benchmark"!
 type Mark struct {
-	BonnieDir                   string   `json:"gobonniego_directory"`
-	AggregateTestFilesSizeInGiB float64  `json:"disk_space_used_gib"`
-	NumReadersWriters           int      `json:"num_readers_and_writers"`
-	PhysicalMemory              uint64   `json:"physical_memory_bytes"`
-	IOPSDuration                float64  `json:"iops_duration_seconds"`
-	Results                     []Result `json:"results"`
-	fileSize                    int      `json:"file_size_bytes"`
+	Start                       time.Time `json:"start_time"`
+	BonnieDir                   string    `json:"gobonniego_directory"`
+	AggregateTestFilesSizeInGiB float64   `json:"disk_space_used_gib"`
+	NumReadersWriters           int       `json:"num_readers_and_writers"`
+	PhysicalMemory              uint64    `json:"physical_memory_bytes"`
+	IODuration                  float64   `json:"iops_duration_seconds"`
+	Results                     []Result  `json:"results"`
+	fileSize                    int
 	randomBlock                 []byte
 }
 
 type Result struct {
+	Start           time.Time     `json:"start_time"`
 	WrittenBytes    int           `json:"write_bytes"`
-	WrittenDuration time.Duration `json:"write_nanoseconds"`
+	WrittenDuration time.Duration `json:"write_seconds"`
 	ReadBytes       int           `json:"read_bytes"`
-	ReadDuration    time.Duration `json:"read_nanoseconds"`
-	IOPSOperations  int           `json:"io_operations"`
-	IOPSDuration    time.Duration `json:"io_nanoseconds"`
+	ReadDuration    time.Duration `json:"read_seconds"`
+	IOOperations    int           `json:"io_operations"`
+	IODuration      time.Duration `json:"io_seconds"`
 }
 
 type ThreadResult struct {
@@ -59,7 +61,7 @@ func (bm *Mark) RunSequentialWriteTest() error {
 		}
 	}
 
-	bm.Results = append(bm.Results, Result{}) // store new result
+	bm.Results = append(bm.Results, Result{Start: time.Now()}) // store new result
 	newResult := &bm.Results[len(bm.Results)-1]
 
 	bytesWritten := make(chan ThreadResult)
@@ -116,16 +118,16 @@ func (bm *Mark) RunIOPSTest() error {
 	for i := 0; i < bm.NumReadersWriters; i++ {
 		go bm.singleThreadIOPSTest(path.Join(bm.BonnieDir, fmt.Sprintf("bonnie.%d", i)), opsPerformed)
 	}
-	newResult.IOPSOperations = 0
+	newResult.IOOperations = 0
 	for i := 0; i < bm.NumReadersWriters; i++ {
 		result := <-opsPerformed
 		if result.Error != nil {
 			return result.Error
 		}
-		newResult.IOPSOperations += result.Result
+		newResult.IOOperations += result.Result
 	}
 
-	newResult.IOPSDuration = time.Now().Sub(start)
+	newResult.IODuration = time.Now().Sub(start)
 	return nil
 }
 
@@ -144,15 +146,21 @@ func (bm Mark) MarshalJSON() ([]byte, error) {
 func (r Result) MarshalJSON() ([]byte, error) {
 	type Alias Result
 	return json.Marshal(&struct {
-		WriteMBps float64 `json:"write_megabytes_per_second"`
-		ReadMBps  float64 `json:"read_megabytes_per_second"`
-		IOPS      float64 `json:"iops"`
+		WriteMBps       float64 `json:"write_megabytes_per_second"`
+		ReadMBps        float64 `json:"read_megabytes_per_second"`
+		IOPS            float64 `json:"iops"`
+		WrittenDuration float64 `json:"write_seconds"`
+		ReadDuration    float64 `json:"read_seconds"`
+		IODuration      float64 `json:"io_seconds"`
 		Alias
 	}{
-		WriteMBps: MegaBytesPerSecond(r.WrittenBytes, r.WrittenDuration),
-		ReadMBps:  MegaBytesPerSecond(r.ReadBytes, r.ReadDuration),
-		IOPS:      IOPS(r.IOPSOperations, r.IOPSDuration),
-		Alias:     Alias(r),
+		WriteMBps:       MegaBytesPerSecond(r.WrittenBytes, r.WrittenDuration),
+		ReadMBps:        MegaBytesPerSecond(r.ReadBytes, r.ReadDuration),
+		IOPS:            IOPS(r.IOOperations, r.IODuration),
+		WrittenDuration: r.WrittenDuration.Seconds(),
+		ReadDuration:    r.ReadDuration.Seconds(),
+		IODuration:      r.IODuration.Seconds(),
+		Alias:           Alias(r),
 	})
 }
 
@@ -310,7 +318,7 @@ func (bm *Mark) singleThreadIOPSTest(filename string, numOpsChannel chan<- Threa
 	checksum := make([]byte, diskBlockSize)
 
 	start := time.Now()
-	for i := 0; time.Now().Sub(start).Seconds() < bm.IOPSDuration; i++ { // run for xx seconds then blow this taco stand
+	for i := 0; time.Now().Sub(start).Seconds() < bm.IODuration; i++ { // run for xx seconds then blow this taco stand
 		f.Seek(rand.Int63n(fileSizeLessOneDiskBlock), 0)
 		// TPC-E has a reads:writes ratio of 9.7:1  http://www.cs.cmu.edu/~chensm/papers/TPCE-sigmod-record10.pdf
 		// we round to 10:1

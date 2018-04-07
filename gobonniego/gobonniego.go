@@ -11,6 +11,7 @@ import (
 	"math"
 	"os"
 	"runtime"
+	"time"
 )
 
 func main() {
@@ -18,7 +19,7 @@ func main() {
 	var err error
 	var numberOfRuns int
 
-	bm := bench.Mark{}
+	bm := bench.Mark{Start: time.Now()}
 
 	bonnieParentDir, err := ioutil.TempDir("", "gobonniegoParent")
 	check(err)
@@ -39,7 +40,7 @@ func main() {
 		"The number of concurrent readers/writers, defaults to the number of CPU cores")
 	flag.Float64Var(&bm.AggregateTestFilesSizeInGiB, "size", math.Floor(float64(2*int(bm.PhysicalMemory>>20)))/1024,
 		"The amount of disk space to use (in GiB), defaults to twice the physical RAM")
-	flag.Float64Var(&bm.IOPSDuration, "iops-duration", 15.0,
+	flag.Float64Var(&bm.IODuration, "iops-duration", 15.0,
 		"The duration in seconds to run the IOPS benchmark, set to 0.5 for quick feedback during development")
 	flag.StringVar(&bonnieParentDir, "dir", bonnieParentDir,
 		"The directory in which gobonniego places its temporary files, should have at least '-size' space available")
@@ -88,12 +89,12 @@ func main() {
 
 		check(bm.RunIOPSTest())
 		if verbose {
-			log.Printf("operations %d\n", bm.Results[i].IOPSOperations)
-			log.Printf("Duration (seconds): %f\n", bm.Results[i].IOPSDuration.Seconds())
+			log.Printf("operations %d\n", bm.Results[i].IOOperations)
+			log.Printf("Duration (seconds): %f\n", bm.Results[i].IODuration.Seconds())
 		}
 		if !jsonOut {
 			fmt.Printf("IOPS: %0.0f\n",
-				bench.IOPS(bm.Results[i].IOPSOperations, bm.Results[i].IOPSDuration))
+				bench.IOPS(bm.Results[i].IOOperations, bm.Results[i].IODuration))
 		}
 	}
 	if jsonOut {

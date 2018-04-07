@@ -148,7 +148,7 @@ For example, to constrain GoBonnieGo to use  0.5 GiB of disk space, type the fol
 gobonniego -size 0.5
 ```
 
-You may specify the duration of the IOPS test. By default it runs for 5
+You may specify the duration of the IOPS test. By default it runs for 15
 seconds, but this can be overridden in order to iterate rapidly while testing.
 For example, to trim the duration of the IOPS test to 1/2 second, type the
 following:
