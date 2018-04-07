@@ -20,7 +20,7 @@ following example, we are logged into a Linux box and we download and run the
 Linux binary:
 
 ```
-curl -o gobonniego -L https://github.com/cunnie/gobonniego/releases/download/1.0.7/gobonniego-linux-amd64
+curl -o gobonniego -L https://github.com/cunnie/gobonniego/releases/download/1.0.8/gobonniego-linux-amd64
 chmod +x gobonniego
 ./gobonniego
 ```
@@ -44,7 +44,7 @@ gobonniego
 Typical output:
 
 ```
-2018/02/19 12:03:16 gobonniego starting. version: 1.0.7, threads: 8, disk space to use (MiB): 3984
+2018/02/19 12:03:16 gobonniego starting. version: 1.0.8, threads: 8, disk space to use (MiB): 3984
 Sequential Write MB/s: 748.22
 Sequential Read MB/s: 1025.19
 IOPS: 23832
@@ -60,7 +60,7 @@ gobonniego -v
 Yields:
 
 ```
-2018/02/24 17:20:20 gobonniego starting. version: 1.0.7, threads: 8, disk space to use (MiB): 512
+2018/02/24 17:20:20 gobonniego starting. version: 1.0.8, threads: 8, disk space to use (MiB): 512
 2018/02/24 17:20:20 Number of CPU cores: 8
 2018/02/24 17:20:20 Total system RAM (MiB): 65536
 2018/02/24 17:20:20 Bonnie working directory: /var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/gobonniegoParent337382325
@@ -117,23 +117,24 @@ Yields:
 
 ```json
 {
-  "version": "1.0.7",
-  "gobonniego_directory": "/var/folders/zp/vmj1nyzj6p567k5syt3hvq3h0000gn/T/gobonniegoParent983654097/gobonniego",
+  "version": "1.0.8",
+  "start_time": "2018-04-07T15:56:58.531189373-07:00",
+  "gobonniego_directory": "/tmp/gobonniegoParent805661459/gobonniego",
   "disk_space_used_gib": 0.5,
-  "num_readers_and_writers": 4,
-  "physical_memory_bytes": 17179869184,
+  "num_readers_and_writers": 8,
+  "physical_memory_bytes": 68719476736,
   "iops_duration_seconds": 0.5,
   "results": [
     {
-      "write_megabytes_per_second": 1608.7642096164034,
-      "read_megabytes_per_second": 11717.751585397944,
-      "iops": 307918.5948218495,
+      "write_megabytes_per_second": 426.29729676979684,
+      "read_megabytes_per_second": 608.4101206203794,
+      "iops": 13845.044903496033,
+      "write_seconds": 1.25938146,
+      "read_seconds": 0.882416143,
+      "io_seconds": 0.517008074,
       "write_bytes": 536870912,
-      "write_nanoseconds": 333716345,
       "read_bytes": 536870912,
-      "read_nanoseconds": 45816888,
-      "io_operations": 222180,
-      "io_nanoseconds": 721554345
+      "io_operations": 7158
     }
   ]
 }
@@ -166,7 +167,7 @@ gobonniego -version
 Yields:
 
 ```
-gobonniego version 1.0.7
+gobonniego version 1.0.8
 ```
 
 `gobonniego -h` will print out the available command line options and their
