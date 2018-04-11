@@ -140,6 +140,14 @@ Yields:
 }
 ```
 
+`jq` can also convert the human-readable timestamps into the number of seconds
+elapsed since the benchmark was started (a useful conversion when creating line
+charts):
+
+```
+gobonniego -json | jq -r '( .start_time | sub("\\.[0-9]*";"") | fromdate ) as $start_time |
+  .results = [ .results[] | .start_time = ( .start_time | sub("\\.[0-9]*";"") | fromdate - $start_time ) ]'
+```
 
 You may specify the amount of disk space GoBonnieGo should use with the `-size` flag
 which takes an integer argument (in GiB). This can be used to iterate rapidly while testing.
