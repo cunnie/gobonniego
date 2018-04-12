@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const Version = "1.0.8"
+const Version = "1.0.9"
 const Blocksize = 0x1 << 16 // 65,536 bytes, 2^16 bytes
 
 // bench.Mark{} -- haha! Get it? "benchmark"!

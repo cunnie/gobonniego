@@ -20,7 +20,7 @@ following example, we are logged into a Linux box and we download and run the
 Linux binary:
 
 ```
-curl -o gobonniego -L https://github.com/cunnie/gobonniego/releases/download/1.0.8/gobonniego-linux-amd64
+curl -o gobonniego -L https://github.com/cunnie/gobonniego/releases/download/1.0.9/gobonniego-linux-amd64
 chmod +x gobonniego
 ./gobonniego
 ```
@@ -44,7 +44,7 @@ gobonniego
 Typical output:
 
 ```
-2018/04/12 06:20:09 gobonniego starting. version: 1.0.8, runs: 1, seconds: 0, threads: 4, disk space to use (MiB): 512
+2018/04/12 06:20:09 gobonniego starting. version: 1.0.9, runs: 1, seconds: 0, threads: 4, disk space to use (MiB): 512
 Sequential Write MB/s: 748.22
 Sequential Read MB/s: 1025.19
 IOPS: 23832
@@ -60,7 +60,7 @@ gobonniego -v
 Yields:
 
 ```
-2018/04/12 06:20:09 gobonniego starting. version: 1.0.8, runs: 1, seconds: 0, threads: 4, disk space to use (MiB): 512
+2018/04/12 06:20:09 gobonniego starting. version: 1.0.9, runs: 1, seconds: 0, threads: 4, disk space to use (MiB): 512
 2018/02/24 17:20:20 Number of CPU cores: 8
 2018/02/24 17:20:20 Total system RAM (MiB): 65536
 2018/02/24 17:20:20 Bonnie working directory: /var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/gobonniegoParent337382325
@@ -134,7 +134,7 @@ Yields:
 
 ```json
 {
-  "version": "1.0.8",
+  "version": "1.0.9",
   "start_time": "2018-04-12T06:46:00.274348275-07:00",
   "gobonniego_directory": "/var/folders/zp/vmj1nyzj6p567k5syt3hvq3h0000gn/T/gobonniegoParent456127644/gobonniego",
   "disk_space_used_gib": 0.5,
@@ -193,7 +193,7 @@ gobonniego -version
 Yields:
 
 ```
-gobonniego version 1.0.8
+gobonniego version 1.0.9
 ```
 
 `gobonniego -h` will print out the available command line options and their
