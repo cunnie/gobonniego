@@ -44,7 +44,7 @@ gobonniego
 Typical output:
 
 ```
-2018/02/19 12:03:16 gobonniego starting. version: 1.0.8, threads: 8, disk space to use (MiB): 3984
+2018/04/12 06:20:09 gobonniego starting. version: 1.0.8, runs: 1, seconds: 0, threads: 4, disk space to use (MiB): 512
 Sequential Write MB/s: 748.22
 Sequential Read MB/s: 1025.19
 IOPS: 23832
@@ -60,7 +60,7 @@ gobonniego -v
 Yields:
 
 ```
-2018/02/24 17:20:20 gobonniego starting. version: 1.0.8, threads: 8, disk space to use (MiB): 512
+2018/04/12 06:20:09 gobonniego starting. version: 1.0.8, runs: 1, seconds: 0, threads: 4, disk space to use (MiB): 512
 2018/02/24 17:20:20 Number of CPU cores: 8
 2018/02/24 17:20:20 Total system RAM (MiB): 65536
 2018/02/24 17:20:20 Bonnie working directory: /var/folders/lp/k0g2hcfs0bz1c4zn90pnh32w0000gn/T/gobonniegoParent337382325
@@ -82,6 +82,23 @@ sample set.
 
 ```
 gobonniego -v -runs 2
+```
+
+You may specify the number of seconds the test should run with the `-seconds`
+flag. For example, if you pass the flag `-seconds=3600`, GoBonnieGo will run
+continuously until 1 hour has elapsed, at which point the program will wait for
+the final test suite (write, read, IOPS) to finish and then exit. If used in
+conjunction with `-runs` flag, it will continue to run until both the time has
+elapsed _and_ the number of runs have completed.
+
+This can be used to determine the IOPS performance of a long-running VM when
+performance is throttled after a period of activity.
+
+In the following example, GoBonnieGo will run for at least one day (24 hours,
+i.e. 86,400 seconds):
+
+```
+gobonniego -v -seconds=86400
 ```
 
 You may specify the placement of GoBonnieGo's test files. This is useful if
@@ -118,23 +135,24 @@ Yields:
 ```json
 {
   "version": "1.0.8",
-  "start_time": "2018-04-07T15:56:58.531189373-07:00",
-  "gobonniego_directory": "/tmp/gobonniegoParent805661459/gobonniego",
+  "start_time": "2018-04-12T06:46:00.274348275-07:00",
+  "gobonniego_directory": "/var/folders/zp/vmj1nyzj6p567k5syt3hvq3h0000gn/T/gobonniegoParent456127644/gobonniego",
   "disk_space_used_gib": 0.5,
-  "num_readers_and_writers": 8,
-  "physical_memory_bytes": 68719476736,
+  "num_readers_and_writers": 4,
+  "physical_memory_bytes": 17179869184,
   "iops_duration_seconds": 0.5,
   "results": [
     {
-      "write_megabytes_per_second": 426.29729676979684,
-      "read_megabytes_per_second": 608.4101206203794,
-      "iops": 13845.044903496033,
-      "write_seconds": 1.25938146,
-      "read_seconds": 0.882416143,
-      "io_seconds": 0.517008074,
+      "write_megabytes_per_second": 1312.8274662905276,
+      "read_megabytes_per_second": 8279.508528024262,
+      "iops": 382508.71617051313,
+      "write_seconds": 0.408942474,
+      "read_seconds": 0.064843331,
+      "io_seconds": 0.724610939,
+      "start_time": "2018-04-12T06:46:00.274972832-07:00",
       "write_bytes": 536870912,
       "read_bytes": 536870912,
-      "io_operations": 7158
+      "io_operations": 277170
     }
   ]
 }

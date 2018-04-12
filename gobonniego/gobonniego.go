@@ -17,7 +17,7 @@ import (
 func main() {
 	var jsonOut, verbose, version bool
 	var err error
-	var numberOfRuns int
+	var numberOfRuns, numberOfSecondsToRun int
 
 	bm := bench.Mark{Start: time.Now()}
 
@@ -36,6 +36,8 @@ func main() {
 		"Version. Will print JSON-formatted results to stdout. Does not affect diagnostics to stderr")
 	flag.IntVar(&numberOfRuns, "runs", 1,
 		"The number of test runs")
+	flag.IntVar(&numberOfSecondsToRun, "seconds", 0,
+		"The time (in seconds) to run the test")
 	flag.IntVar(&bm.NumReadersWriters, "threads", runtime.NumCPU(),
 		"The number of concurrent readers/writers, defaults to the number of CPU cores")
 	flag.Float64Var(&bm.AggregateTestFilesSizeInGiB, "size", math.Floor(float64(2*int(bm.PhysicalMemory>>20)))/1024,
@@ -54,8 +56,8 @@ func main() {
 	check(bm.SetBonnieDir(bonnieParentDir))
 	defer os.RemoveAll(bm.BonnieDir)
 
-	log.Printf("gobonniego starting. version: %s, threads: %d, disk space to use (MiB): %d",
-		bm.Version(), bm.NumReadersWriters, int(bm.AggregateTestFilesSizeInGiB*(1<<10)))
+	log.Printf("gobonniego starting. version: %s, runs: %d, seconds: %d, threads: %d, disk space to use (MiB): %d",
+		bm.Version(), numberOfRuns, numberOfSecondsToRun, bm.NumReadersWriters, int(bm.AggregateTestFilesSizeInGiB*(1<<10)))
 	if verbose {
 		log.Printf("Number of CPU cores: %d", runtime.NumCPU())
 		log.Printf("Total system RAM (MiB): %d", bm.PhysicalMemory>>20)
@@ -65,7 +67,8 @@ func main() {
 	check(bm.CreateRandomBlock())
 	go bench.ClearBufferCacheEveryThreeSeconds() // flush the Buffer Cache every 3 seconds
 
-	for i := 0; i < numberOfRuns; i++ {
+	finishTime := bm.Start.Add(time.Duration(numberOfSecondsToRun) * time.Second)
+	for i := 0; (i < numberOfRuns) || time.Now().Before(finishTime); i++ {
 		check(bm.RunSequentialWriteTest())
 		if verbose {
 			log.Printf("Written (MiB): %d\n", bm.Results[i].WrittenBytes>>20)
