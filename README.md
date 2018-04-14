@@ -84,21 +84,25 @@ sample set.
 gobonniego -v -runs 2
 ```
 
-You may specify the number of seconds the test should run with the `-seconds`
-flag. For example, if you pass the flag `-seconds=3600`, GoBonnieGo will run
-continuously until 1 hour has elapsed, at which point the program will wait for
-the final test suite (write, read, IOPS) to finish and then exit. If used in
-conjunction with `-runs` flag, it will continue to run until both the time has
-elapsed _and_ the number of runs have completed.
+You may specify the _minimum_ number of seconds the test should run with the
+`-seconds` flag. For example, if you pass the flag `-seconds 3600`, GoBonnieGo
+will run continuously until 1 hour has elapsed, at which point the program will
+wait for the final test suite (write, read, IOPS) to finish and then exit.
 
-This can be used to determine the IOPS performance of a long-running VM when
-performance is throttled after a period of activity.
+GoBonnieGo may take much longer to complete than one would expect. For example,
+if you set `-seconds 60` and run GoBonnieGo on a machine with a very slow disk
+(some disks take over an hour to finish a single suite), then GoBonnieGo will
+not stop after 60 seconds; instead, it will continue running until that
+particular suite is finished.
+
+When used in conjunction with `-runs` flag, GoBonnieGo will continue to run
+until both the time has elapsed _and_ the number of runs have completed.
 
 In the following example, GoBonnieGo will run for at least one day (24 hours,
 i.e. 86,400 seconds):
 
 ```
-gobonniego -v -seconds=86400
+gobonniego -v -seconds 86400
 ```
 
 You may specify the placement of GoBonnieGo's test files. This is useful if
