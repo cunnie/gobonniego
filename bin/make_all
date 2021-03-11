@@ -4,7 +4,7 @@
 #
 export GOOS GOARCH
 for GOOS in darwin linux freebsd; do
-  for GOARCH in amd64; do
+  for GOARCH in amd64 arm64; do
     go build -o $GOPATH/bin/gobonniego-$GOOS-$GOARCH gobonniego/gobonniego.go
   done
 done
