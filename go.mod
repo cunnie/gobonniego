@@ -1,10 +1,12 @@
 module github.com/cunnie/gobonniego
 
-go 1.19
+go 1.21
 
-require github.com/cloudfoundry/gosigar v1.3.4
+toolchain go1.21.3
+
+require github.com/cloudfoundry/gosigar v1.3.35
 
 require (
 	github.com/pkg/errors v0.9.1 // indirect
-	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
+	golang.org/x/sys v0.14.0 // indirect
 )
